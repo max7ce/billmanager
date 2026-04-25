@@ -11,6 +11,7 @@
   <link rel="manifest" href="/billmanager/manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
     /* ── Variables ─────────────────────────────────── */
@@ -414,6 +415,39 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .spinner { width: 24px; height: 24px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--accent-blue); animation: spin 0.7s linear infinite; }
     .hidden { display: none !important; }
+
+    /* ── Dashboard & Reportes ───────────────────────── */
+    .dash-period-selector { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+    .dash-period-selector::-webkit-scrollbar { display: none; }
+    .period-btn { flex-shrink: 0; padding: 8px 18px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-muted); font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .period-btn.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); box-shadow: 0 2px 12px rgba(56,189,248,0.3); }
+    .kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; }
+    .kpi-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+    .kpi-value { font-family: var(--font-display); font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+    .kpi-value.blue { color: var(--accent-blue); } .kpi-value.green { color: var(--accent-green); } .kpi-value.amber { color: var(--accent-amber); } .kpi-value.purple { color: var(--accent-purple); }
+    .kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px; margin-bottom: 16px; }
+    .chart-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; margin-bottom: 16px; }
+    .chart-wrap { width: 100%; overflow-x: auto; } .chart-wrap svg { display: block; } .chart-wrap::-webkit-scrollbar { display: none; }
+    .donut-wrap { display: flex; align-items: center; gap: 20px; }
+    .donut-svg { flex-shrink: 0; }
+    .donut-legend { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .legend-row { display: flex; align-items: center; gap: 8px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .legend-name { font-size: 12px; color: var(--text-secondary); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .legend-val  { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+    .history-list { display: flex; flex-direction: column; gap: 10px; }
+    .history-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px 16px; display: flex; align-items: center; gap: 14px; }
+    .history-icon { width: 40px; height: 40px; border-radius: 11px; background: rgba(52,211,153,0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .history-info { flex: 1; min-width: 0; }
+    .history-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .history-date { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .history-note { font-size: 11px; color: var(--text-muted); font-style: italic; }
+    .history-amount { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--accent-green); text-align: right; flex-shrink: 0; }
+    .export-btn { width: 100%; padding: 16px; border-radius: var(--radius-md); background: linear-gradient(135deg,#16a34a,#15803d); border: none; color: #fff; font-family: var(--font-body); font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 16px rgba(22,163,74,0.3); transition: transform 0.1s; margin-bottom: 10px; }
+    .export-btn:active { transform: scale(0.97); }
+    .export-btn.blue { background: linear-gradient(135deg,var(--accent-blue),#0ea5e9); box-shadow: 0 4px 16px rgba(56,189,248,0.25); }
   </style>
 </head>
 <body>
@@ -520,6 +554,9 @@
       <button class="tab-btn" data-tab="alerts" onclick="switchTab('alerts')">
         <span class="tab-icon">⏰</span>Alertas
       </button>
+      <button class="tab-btn" data-tab="dash" onclick="switchTab('dash')">
+        <span class="tab-icon">📊</span>Dashboard
+      </button>
       <button class="tab-btn" data-tab="notif" onclick="switchTab('notif')">
         <span class="tab-icon">🔔</span>Avisos
       </button>
@@ -567,6 +604,46 @@
       </div>
 
       <!-- ═ Tab: Notificaciones ═ -->
+      <!-- ═ Tab: Dashboard ═ -->
+      <div id="tab-dash" class="tab-panel">
+        <!-- Selector de período -->
+        <div class="dash-period-selector" id="dash-periods"></div>
+        <!-- KPIs -->
+        <div class="kpi-row">
+          <div class="kpi-card"><div class="kpi-label">Gastado</div><div class="kpi-value blue" id="kpi-spent">Bs. 0</div><div class="kpi-sub" id="kpi-spent-sub">este mes</div></div>
+          <div class="kpi-card"><div class="kpi-label">Pagos</div><div class="kpi-value green" id="kpi-count">0</div><div class="kpi-sub">registrados</div></div>
+          <div class="kpi-card"><div class="kpi-label">Promedio</div><div class="kpi-value amber" id="kpi-avg">Bs. 0</div><div class="kpi-sub">por pago</div></div>
+          <div class="kpi-card"><div class="kpi-label">Servicios</div><div class="kpi-value purple" id="kpi-svc">0</div><div class="kpi-sub">distintos</div></div>
+        </div>
+        <!-- Gráfico de barras mensual -->
+        <div class="chart-card">
+          <div class="chart-title">Gasto por mes (últimos 6 meses)</div>
+          <div class="chart-wrap" id="chart-monthly"></div>
+        </div>
+        <!-- Donut por categoría -->
+        <div class="chart-card">
+          <div class="chart-title">Gasto por categoría</div>
+          <div class="donut-wrap">
+            <svg class="donut-svg" id="chart-donut" width="120" height="120" viewBox="0 0 120 120"></svg>
+            <div class="donut-legend" id="donut-legend"></div>
+          </div>
+        </div>
+        <!-- Historial de pagos -->
+        <div class="section-header" style="margin-top:4px">
+          <div class="section-title">Historial de pagos</div>
+          <div class="section-count" id="history-count">0</div>
+        </div>
+        <div class="history-list" id="history-list"></div>
+        <!-- Exportar -->
+        <div style="margin-top:20px">
+          <button class="export-btn" onclick="exportExcel()">
+            <span>📊</span> Exportar a Excel (.xlsx)
+          </button>
+          <button class="export-btn blue" onclick="exportCSV()">
+            <span>📄</span> Exportar a CSV
+          </button>
+        </div>
+      </div>
       <div id="tab-notif" class="tab-panel">
         <div id="notif-status-wrap"></div>
 
@@ -1734,6 +1811,453 @@ async function boot() {
   if (Notification.permission === 'granted') {
     setTimeout(scheduleLocalNotifications, 2000);
   }
+}
+
+
+/* ══════════════════════════════════════════════════
+   FASE 3 — DASHBOARD, REPORTES Y EXPORTACIÓN
+   ══════════════════════════════════════════════════ */
+
+/* ── Estado del dashboard ───────────────────────── */
+const Dash = {
+  selectedPeriod: null,   // { year, month } | null = todos
+  periods: []             // lista de { year, month, label }
+};
+
+/* ── Tipo de cambio referencial (ajustable) ─────── */
+const USD_TO_BS = 6.96;
+
+function toBS(amount, currency) {
+  return currency === 'USD' ? amount * USD_TO_BS : amount;
+}
+
+/* ── Colores por categoría ──────────────────────── */
+const CAT_COLORS = {
+  streaming: '#38bdf8',
+  ia:        '#a78bfa',
+  seguro:    '#34d399',
+  prestamo:  '#fbbf24',
+  alquiler:  '#f87171',
+  servicio:  '#94a3b8',
+  otro:      '#64748b'
+};
+
+/* ── Actualizar switchTab para incluir dashboard ── */
+const _origSwitchTab = switchTab;
+switchTab = function(tab) {
+  _origSwitchTab(tab);
+  if (tab === 'dash') renderDashboard();
+  // Ocultar FAB en dashboard
+  const fab = document.getElementById('fab-btn');
+  if (tab === 'dash') { fab.style.display = 'none'; }
+  else { fab.style.display = ''; }
+};
+
+/* ── Render principal del dashboard ─────────────── */
+async function renderDashboard() {
+  const payments = await dbGetAll('payments');
+  const services = await dbGetAll('services');
+
+  // Construir lista de períodos disponibles
+  buildPeriods(payments);
+
+  // Si no hay período seleccionado, usar el mes actual
+  if (!Dash.selectedPeriod && Dash.periods.length > 0) {
+    Dash.selectedPeriod = Dash.periods[0];
+  }
+
+  renderPeriodSelector();
+  renderKPIs(payments, services);
+  renderBarChart(payments);
+  renderDonut(payments, services);
+  renderHistory(payments, services);
+}
+
+/* ── Períodos disponibles ───────────────────────── */
+function buildPeriods(payments) {
+  const seen = new Set();
+  const now  = new Date();
+  // Siempre incluir mes actual
+  seen.add(`${now.getFullYear()}-${now.getMonth()}`);
+
+  payments.forEach(p => {
+    const d = new Date(p.paidAt);
+    seen.add(`${d.getFullYear()}-${d.getMonth()}`);
+  });
+
+  Dash.periods = Array.from(seen).sort((a,b) => b.localeCompare(a)).map(key => {
+    const [y, m] = key.split('-').map(Number);
+    const d = new Date(y, m, 1);
+    return {
+      year: y, month: m,
+      label: d.toLocaleDateString('es-BO', { month: 'short', year: '2-digit' })
+             .replace('.','').toUpperCase()
+    };
+  });
+}
+
+/* ── Selector de período ─────────────────────────── */
+function renderPeriodSelector() {
+  const wrap = document.getElementById('dash-periods');
+  const items = [{ year: null, month: null, label: 'Todo' }, ...Dash.periods];
+
+  wrap.innerHTML = items.map(p => {
+    const isActive = Dash.selectedPeriod === null
+      ? p.year === null
+      : p.year === Dash.selectedPeriod.year && p.month === Dash.selectedPeriod.month;
+    return `<button class="period-btn ${isActive?'active':''}"
+      onclick="selectPeriod(${p.year},${p.month})">${p.label}</button>`;
+  }).join('');
+}
+
+function selectPeriod(year, month) {
+  Dash.selectedPeriod = (year === null) ? null : { year: Number(year), month: Number(month) };
+  renderDashboard();
+}
+
+/* ── Filtrar pagos por período ──────────────────── */
+function filterPayments(payments) {
+  if (!Dash.selectedPeriod) return payments;
+  const { year, month } = Dash.selectedPeriod;
+  return payments.filter(p => {
+    const d = new Date(p.paidAt);
+    return d.getFullYear() === year && d.getMonth() === month;
+  });
+}
+
+/* ── KPIs ────────────────────────────────────────── */
+function renderKPIs(allPayments, services) {
+  const payments = filterPayments(allPayments);
+
+  let spent = 0;
+  const svcIds = new Set();
+  payments.forEach(p => {
+    spent += toBS(p.amount || 0, p.currency || 'BS');
+    svcIds.add(p.serviceId);
+  });
+  const avg   = payments.length > 0 ? spent / payments.length : 0;
+  const label = Dash.selectedPeriod
+    ? Dash.periods.find(p=>p.year===Dash.selectedPeriod.year&&p.month===Dash.selectedPeriod.month)?.label || ''
+    : 'todo el historial';
+
+  document.getElementById('kpi-spent').textContent     = `Bs. ${spent.toFixed(0)}`;
+  document.getElementById('kpi-spent-sub').textContent = label;
+  document.getElementById('kpi-count').textContent     = payments.length;
+  document.getElementById('kpi-avg').textContent       = `Bs. ${avg.toFixed(0)}`;
+  document.getElementById('kpi-svc').textContent       = svcIds.size;
+}
+
+/* ── Gráfico de barras: últimos 6 meses ─────────── */
+function renderBarChart(allPayments) {
+  const wrap = document.getElementById('chart-monthly');
+  const now  = new Date();
+
+  // Construir 6 meses hacia atrás
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      year: d.getFullYear(), month: d.getMonth(),
+      label: d.toLocaleDateString('es-BO', { month: 'short' }).replace('.','').toUpperCase(),
+      total: 0
+    });
+  }
+
+  allPayments.forEach(p => {
+    const d = new Date(p.paidAt);
+    const m = months.find(m => m.year===d.getFullYear() && m.month===d.getMonth());
+    if (m) m.total += toBS(p.amount || 0, p.currency || 'BS');
+  });
+
+  const maxVal = Math.max(...months.map(m=>m.total), 1);
+  const W = 320, H = 120, barW = 36, gap = 14;
+  const totalW = months.length * (barW + gap) - gap + 40;
+
+  const bars = months.map((m, i) => {
+    const x      = 20 + i * (barW + gap);
+    const barH   = Math.max(4, (m.total / maxVal) * (H - 36));
+    const y      = H - barH - 20;
+    const isActive = Dash.selectedPeriod &&
+      m.year === Dash.selectedPeriod.year && m.month === Dash.selectedPeriod.month;
+    const fill   = isActive ? '#34d399' : '#38bdf8';
+    const opacity = m.total === 0 ? 0.2 : 1;
+    return `
+      <rect x="${x}" y="${y}" width="${barW}" height="${barH}"
+            rx="6" fill="${fill}" opacity="${opacity}"
+            onclick="selectPeriod(${m.year},${m.month})" style="cursor:pointer"/>
+      <text x="${x + barW/2}" y="${H - 6}" text-anchor="middle"
+            fill="#4a6280" font-size="10" font-family="DM Sans,sans-serif">${m.label}</text>
+      ${m.total > 0 ? `<text x="${x+barW/2}" y="${y-5}" text-anchor="middle"
+            fill="${fill}" font-size="9" font-family="Sora,sans-serif" font-weight="700">
+            ${m.total >= 1000 ? (m.total/1000).toFixed(1)+'k' : m.total.toFixed(0)}</text>` : ''}
+    `;
+  }).join('');
+
+  wrap.innerHTML = `<svg width="${Math.max(totalW, W)}" height="${H}" viewBox="0 0 ${Math.max(totalW,W)} ${H}"
+    xmlns="http://www.w3.org/2000/svg">${bars}</svg>`;
+}
+
+/* ── Donut por categoría ─────────────────────────── */
+function renderDonut(allPayments, services) {
+  const payments = filterPayments(allPayments);
+  const svcMap   = {};
+  services.forEach(s => { svcMap[s.id] = s; });
+
+  // Sumar por categoría
+  const cats = {};
+  payments.forEach(p => {
+    const svc  = svcMap[p.serviceId];
+    const cat  = svc?.category || 'otro';
+    const icon = svc?.icon || '📦';
+    if (!cats[cat]) cats[cat] = { total: 0, label: cat, icon };
+    cats[cat].total += toBS(p.amount || 0, p.currency || 'BS');
+  });
+
+  const entries = Object.entries(cats)
+    .sort((a,b) => b[1].total - a[1].total)
+    .slice(0, 6);
+  const grandTotal = entries.reduce((s,[,v])=>s+v.total, 0) || 1;
+
+  if (entries.length === 0) {
+    document.getElementById('chart-donut').innerHTML =
+      `<text x="60" y="64" text-anchor="middle" fill="#4a6280" font-size="11" font-family="DM Sans">Sin datos</text>`;
+    document.getElementById('donut-legend').innerHTML = '';
+    return;
+  }
+
+  // SVG donut
+  const cx = 60, cy = 60, R = 46, r = 28;
+  let startAngle = -Math.PI / 2;
+  const paths = entries.map(([cat, v]) => {
+    const angle    = (v.total / grandTotal) * 2 * Math.PI;
+    const endAngle = startAngle + angle;
+    const x1 = cx + R * Math.cos(startAngle);
+    const y1 = cy + R * Math.sin(startAngle);
+    const x2 = cx + R * Math.cos(endAngle);
+    const y2 = cy + R * Math.sin(endAngle);
+    const ix1 = cx + r * Math.cos(startAngle);
+    const iy1 = cy + r * Math.sin(startAngle);
+    const ix2 = cx + r * Math.cos(endAngle);
+    const iy2 = cy + r * Math.sin(endAngle);
+    const large = angle > Math.PI ? 1 : 0;
+    const path = `M${x1},${y1} A${R},${R} 0 ${large},1 ${x2},${y2}
+                  L${ix2},${iy2} A${r},${r} 0 ${large},0 ${ix1},${iy1} Z`;
+    const color = CAT_COLORS[cat] || '#64748b';
+    startAngle = endAngle;
+    return `<path d="${path}" fill="${color}" stroke="var(--bg-card)" stroke-width="2"/>`;
+  }).join('');
+
+  document.getElementById('chart-donut').innerHTML = paths +
+    `<text x="${cx}" y="${cy+4}" text-anchor="middle" fill="var(--text-primary)"
+     font-size="11" font-family="Sora,sans-serif" font-weight="700">
+     ${grandTotal >= 1000 ? 'Bs.'+(grandTotal/1000).toFixed(1)+'k' : 'Bs.'+grandTotal.toFixed(0)}</text>`;
+
+  // Leyenda
+  const LABEL_MAP = { streaming:'Streaming', ia:'IA', seguro:'Seguro',
+    prestamo:'Préstamo', alquiler:'Alquiler', servicio:'Servicios', otro:'Otros' };
+  document.getElementById('donut-legend').innerHTML = entries.map(([cat, v]) =>
+    `<div class="legend-row">
+      <div class="legend-dot" style="background:${CAT_COLORS[cat]||'#64748b'}"></div>
+      <div class="legend-name">${LABEL_MAP[cat]||cat}</div>
+      <div class="legend-val">Bs.${v.total.toFixed(0)}</div>
+    </div>`
+  ).join('');
+}
+
+/* ── Historial de pagos ─────────────────────────── */
+async function renderHistory(allPayments, services) {
+  const payments = filterPayments(allPayments)
+    .sort((a,b) => b.paidAt - a.paidAt)
+    .slice(0, 30);
+
+  const svcMap = {};
+  services.forEach(s => { svcMap[s.id] = s; });
+
+  document.getElementById('history-count').textContent = filterPayments(allPayments).length;
+  const list = document.getElementById('history-list');
+
+  if (payments.length === 0) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">💳</div>
+      <h3>Sin pagos registrados</h3>
+      <p>Usa el flujo de pago guiado para registrar tus pagos</p>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = payments.map(p => {
+    const svc  = svcMap[p.serviceId];
+    const date = new Date(p.paidAt);
+    const dateStr = date.toLocaleDateString('es-BO', { day:'2-digit', month:'short', year:'numeric' });
+    return `<div class="history-item animate-in">
+      <div class="history-icon">${svc?.icon || '💳'}</div>
+      <div class="history-info">
+        <div class="history-name">${p.serviceName || svc?.name || 'Servicio'}</div>
+        <div class="history-date">${dateStr}</div>
+        ${p.note ? `<div class="history-note">${p.note}</div>` : ''}
+      </div>
+      <div class="history-amount">${formatMoney(p.amount, p.currency)}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════
+   EXPORTACIÓN EXCEL (.xlsx)
+   ══════════════════════════════════════════════════ */
+async function exportExcel() {
+  if (typeof XLSX === 'undefined') {
+    showToast('Cargando librería Excel...', 'info');
+    return;
+  }
+
+  const payments = await dbGetAll('payments');
+  const services = await dbGetAll('services');
+  const cards    = await dbGetAll('cards');
+
+  const svcMap  = {};
+  services.forEach(s => { svcMap[s.id] = s; });
+  const cardMap = {};
+  cards.forEach(c => { cardMap[c.id] = c; });
+
+  if (payments.length === 0) {
+    showToast('No hay pagos registrados para exportar', 'error');
+    return;
+  }
+
+  const wb = XLSX.utils.book_new();
+
+  /* ── Hoja 1: Historial de pagos ── */
+  const payRows = payments
+    .sort((a,b) => b.paidAt - a.paidAt)
+    .map(p => {
+      const svc  = svcMap[p.serviceId];
+      const card = svc?.cardId ? cardMap[svc.cardId] : null;
+      const d    = new Date(p.paidAt);
+      return {
+        'Fecha':           d.toLocaleDateString('es-BO'),
+        'Servicio':        p.serviceName || svc?.name || '—',
+        'Categoría':       (svc?.category||'').toUpperCase(),
+        'Monto':           parseFloat(p.amount||0),
+        'Moneda':          p.currency || 'BS',
+        'Monto en Bs.':    parseFloat(toBS(p.amount||0, p.currency||'BS').toFixed(2)),
+        'Tarjeta':         card ? `${card.alias} ••${card.digits}` : '—',
+        'Nota':            p.note || '',
+        'Año':             d.getFullYear(),
+        'Mes':             d.getMonth() + 1,
+      };
+    });
+
+  const ws1 = XLSX.utils.json_to_sheet(payRows);
+  // Ancho de columnas
+  ws1['!cols'] = [
+    {wch:12},{wch:20},{wch:14},{wch:10},{wch:8},{wch:12},{wch:20},{wch:24},{wch:6},{wch:5}
+  ];
+  // Estilo de encabezado (SheetJS community no soporta estilos, pero dejamos estructura)
+  XLSX.utils.book_append_sheet(wb, ws1, 'Historial de Pagos');
+
+  /* ── Hoja 2: Resumen por categoría ── */
+  const catTotals = {};
+  payments.forEach(p => {
+    const svc = svcMap[p.serviceId];
+    const cat = svc?.category || 'otro';
+    if (!catTotals[cat]) catTotals[cat] = { pagos: 0, totalBS: 0 };
+    catTotals[cat].pagos++;
+    catTotals[cat].totalBS += toBS(p.amount||0, p.currency||'BS');
+  });
+  const catRows = Object.entries(catTotals).map(([cat, v]) => ({
+    'Categoría':  cat.toUpperCase(),
+    'N° Pagos':   v.pagos,
+    'Total Bs.':  parseFloat(v.totalBS.toFixed(2)),
+    '% del Total': parseFloat(((v.totalBS / Object.values(catTotals).reduce((s,x)=>s+x.totalBS,0))*100).toFixed(1))
+  }));
+  const ws2 = XLSX.utils.json_to_sheet(catRows);
+  ws2['!cols'] = [{wch:16},{wch:10},{wch:12},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Por Categoría');
+
+  /* ── Hoja 3: Resumen mensual ── */
+  const monthTotals = {};
+  payments.forEach(p => {
+    const d   = new Date(p.paidAt);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    if (!monthTotals[key]) monthTotals[key] = { pagos: 0, totalBS: 0 };
+    monthTotals[key].pagos++;
+    monthTotals[key].totalBS += toBS(p.amount||0, p.currency||'BS');
+  });
+  const monthRows = Object.entries(monthTotals).sort((a,b)=>b[0].localeCompare(a[0])).map(([key,v]) => {
+    const [yr, mo] = key.split('-');
+    const d = new Date(Number(yr), Number(mo)-1, 1);
+    return {
+      'Período':    d.toLocaleDateString('es-BO', { month: 'long', year: 'numeric' }),
+      'N° Pagos':   v.pagos,
+      'Total Bs.':  parseFloat(v.totalBS.toFixed(2)),
+    };
+  });
+  const ws3 = XLSX.utils.json_to_sheet(monthRows);
+  ws3['!cols'] = [{wch:20},{wch:10},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Por Mes');
+
+  /* ── Hoja 4: Servicios activos ── */
+  const svcRows = services.map(s => {
+    const card = s.cardId ? cardMap[s.cardId] : null;
+    return {
+      'Servicio':     s.name,
+      'Categoría':    s.category.toUpperCase(),
+      'Monto':        parseFloat(s.amount||0),
+      'Moneda':       s.currency||'BS',
+      'Monto en Bs.': parseFloat(toBS(s.amount||0, s.currency||'BS').toFixed(2)),
+      'Día de pago':  s.day,
+      'Tarjeta':      card ? `${card.alias} ••${card.digits}` : '—',
+      'Estado':       s.active !== false ? 'ACTIVO' : 'INACTIVO',
+      'URL':          s.url || '',
+    };
+  });
+  const ws4 = XLSX.utils.json_to_sheet(svcRows);
+  ws4['!cols'] = [{wch:22},{wch:14},{wch:10},{wch:8},{wch:12},{wch:10},{wch:20},{wch:10},{wch:30}];
+  XLSX.utils.book_append_sheet(wb, ws4, 'Servicios');
+
+  /* ── Generar y descargar ── */
+  const now      = new Date();
+  const filename = `BillManager_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.xlsx`;
+  XLSX.writeFile(wb, filename);
+  showToast('📊 Excel descargado: ' + filename, 'success');
+}
+
+/* ══════════════════════════════════════════════════
+   EXPORTACIÓN CSV (fallback)
+   ══════════════════════════════════════════════════ */
+async function exportCSV() {
+  const payments = await dbGetAll('payments');
+  const services = await dbGetAll('services');
+
+  if (payments.length === 0) { showToast('No hay pagos para exportar', 'error'); return; }
+
+  const svcMap = {};
+  services.forEach(s => { svcMap[s.id] = s; });
+
+  const header = ['Fecha','Servicio','Categoría','Monto','Moneda','Monto Bs.','Nota'];
+  const rows   = payments.sort((a,b)=>b.paidAt-a.paidAt).map(p => {
+    const svc = svcMap[p.serviceId];
+    const d   = new Date(p.paidAt);
+    return [
+      d.toLocaleDateString('es-BO'),
+      `"${p.serviceName||svc?.name||'—'}"`,
+      svc?.category||'',
+      p.amount||0,
+      p.currency||'BS',
+      toBS(p.amount||0,p.currency||'BS').toFixed(2),
+      `"${p.note||''}"`
+    ].join(',');
+  });
+
+  const csv  = [header.join(','), ...rows].join('\n');
+  const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `BillManager_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📄 CSV descargado', 'success');
 }
 
 document.addEventListener('DOMContentLoaded', boot);
