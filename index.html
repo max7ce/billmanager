@@ -8,16 +8,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>BillManager</title>
-  <link rel="manifest" href="manifest.json" />
-
-  <!-- Fuentes: Sora (display) + DM Sans (body) -->
+  <link rel="manifest" href="/billmanager/manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
   <style>
-    /* ================================================
-       VARIABLES Y RESET
-       ================================================ */
+    /* ── Variables ─────────────────────────────────── */
     :root {
       --bg-base:      #080d17;
       --bg-card:      #0f1826;
@@ -25,408 +21,166 @@
       --bg-elevated:  #1a2740;
       --border:       rgba(255,255,255,0.06);
       --border-glow:  rgba(56,189,248,0.25);
-
       --accent-blue:  #38bdf8;
       --accent-green: #34d399;
       --accent-amber: #fbbf24;
       --accent-red:   #f87171;
       --accent-purple:#a78bfa;
-
       --text-primary: #f0f6ff;
       --text-secondary:#8ba3c0;
       --text-muted:   #4a6280;
-
-      --radius-sm:    10px;
-      --radius-md:    16px;
-      --radius-lg:    22px;
-      --radius-xl:    30px;
-
-      --safe-top:     env(safe-area-inset-top, 0px);
-      --safe-bottom:  env(safe-area-inset-bottom, 0px);
-
-      --font-display: 'Sora', sans-serif;
-      --font-body:    'DM Sans', sans-serif;
-
-      --shadow-card:  0 4px 24px rgba(0,0,0,0.4);
-      --shadow-glow:  0 0 30px rgba(56,189,248,0.15);
+      --radius-sm: 10px; --radius-md: 16px;
+      --radius-lg: 22px; --radius-xl: 30px;
+      --safe-top:    env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --font-display:'Sora', sans-serif;
+      --font-body:   'DM Sans', sans-serif;
+      --shadow-glow: 0 0 30px rgba(56,189,248,0.15);
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     html, body {
-      height: 100%;
-      background: var(--bg-base);
-      color: var(--text-primary);
-      font-family: var(--font-body);
-      font-size: 16px;
-      line-height: 1.5;
-      overflow: hidden;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
+      height: 100%; background: var(--bg-base); color: var(--text-primary);
+      font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+      overflow: hidden; -webkit-tap-highlight-color: transparent; user-select: none;
     }
-
-    /* ================================================
-       LAYOUT PRINCIPAL — Mobile first S23 Ultra
-       ================================================ */
     #app {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      padding-top: var(--safe-top);
-      padding-bottom: var(--safe-bottom);
-      overflow: hidden;
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); overflow: hidden;
     }
 
-    /* ================================================
-       PANTALLA: AUTH
-       ================================================ */
-    #screen-auth {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 32px;
-      gap: 0;
-      background: var(--bg-base);
-      position: relative;
-      overflow: hidden;
+    /* ── Auth / Setup ───────────────────────────────── */
+    #screen-auth, #screen-setup {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 40px 32px; position: relative; overflow: hidden;
     }
-
-    /* Fondo decorativo */
     #screen-auth::before {
-      content: '';
-      position: absolute;
-      top: -120px; left: 50%;
-      transform: translateX(-50%);
+      content: ''; position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
       width: 600px; height: 600px;
       background: radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 65%);
       pointer-events: none;
     }
-
-    .auth-logo {
-      font-family: var(--font-display);
-      font-size: 36px;
-      font-weight: 800;
-      letter-spacing: -1px;
-      color: var(--text-primary);
-      margin-bottom: 6px;
-      position: relative;
-    }
+    .auth-logo { font-family: var(--font-display); font-size: 36px; font-weight: 800;
+      letter-spacing: -1px; margin-bottom: 6px; }
     .auth-logo span { color: var(--accent-blue); }
-
-    .auth-tagline {
-      font-size: 14px;
-      color: var(--text-muted);
-      margin-bottom: 64px;
-      letter-spacing: 0.3px;
-    }
-
-    /* Botón biométrico */
-    .bio-btn-wrap {
-      position: relative;
-      margin-bottom: 48px;
-    }
-
-    .bio-pulse {
-      position: absolute;
-      inset: -20px;
-      border-radius: 50%;
-      background: transparent;
-      border: 2px solid rgba(56,189,248,0.2);
-      animation: pulse-ring 2.5s ease-out infinite;
-    }
+    .auth-tagline { font-size: 14px; color: var(--text-muted); margin-bottom: 56px; }
+    .bio-btn-wrap { position: relative; margin-bottom: 44px; }
+    .bio-pulse { position: absolute; inset: -20px; border-radius: 50%; background: transparent;
+      border: 2px solid rgba(56,189,248,0.2); animation: pulse-ring 2.5s ease-out infinite; }
     .bio-pulse:nth-child(2) { animation-delay: 0.8s; }
     .bio-pulse:nth-child(3) { animation-delay: 1.6s; }
-
-    @keyframes pulse-ring {
-      0%   { transform: scale(0.85); opacity: 0.8; }
-      100% { transform: scale(1.5);  opacity: 0; }
-    }
-
+    @keyframes pulse-ring { 0% { transform: scale(0.85); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
     .bio-btn {
-      position: relative;
-      z-index: 1;
-      width: 100px; height: 100px;
-      border-radius: 50%;
-      border: none;
-      background: linear-gradient(145deg, var(--bg-elevated), var(--bg-surface));
+      position: relative; z-index: 1; width: 100px; height: 100px; border-radius: 50%;
+      border: none; background: linear-gradient(145deg, var(--bg-elevated), var(--bg-surface));
       box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: transform 0.15s, box-shadow 0.15s;
-      outline: none;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s; outline: none;
     }
     .bio-btn:active { transform: scale(0.92); }
     .bio-btn svg { width: 44px; height: 44px; }
-
-    .bio-label {
-      text-align: center;
-      font-size: 13px;
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
-    .bio-label strong {
-      display: block;
-      font-size: 16px;
-      color: var(--text-primary);
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    /* PIN fallback */
-    .pin-section {
-      width: 100%;
-      max-width: 320px;
-      margin-top: 8px;
-    }
-
-    .pin-title {
-      text-align: center;
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 16px;
-    }
-
-    .pin-dots {
-      display: flex; justify-content: center; gap: 14px;
-      margin-bottom: 28px;
-    }
-    .pin-dot {
-      width: 14px; height: 14px; border-radius: 50%;
-      border: 2px solid var(--text-muted);
-      background: transparent;
-      transition: background 0.2s, border-color 0.2s;
-    }
-    .pin-dot.filled {
-      background: var(--accent-blue);
-      border-color: var(--accent-blue);
-    }
-
-    .pin-pad {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
-    }
+    .bio-label { text-align: center; font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 32px; }
+    .bio-label strong { display: block; font-size: 16px; color: var(--text-primary); font-weight: 600; margin-bottom: 4px; }
+    .pin-section { width: 100%; max-width: 320px; }
+    .pin-title { text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+    .pin-dots { display: flex; justify-content: center; gap: 14px; margin-bottom: 28px; }
+    .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--text-muted); transition: all 0.2s; }
+    .pin-dot.filled { background: var(--accent-blue); border-color: var(--accent-blue); }
+    .pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
     .pin-key {
-      aspect-ratio: 1;
-      border: none;
-      border-radius: var(--radius-md);
-      background: var(--bg-surface);
-      color: var(--text-primary);
-      font-family: var(--font-display);
-      font-size: 22px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.12s, transform 0.08s;
-      outline: none;
-      border: 1px solid var(--border);
+      aspect-ratio: 1; border: none; border-radius: var(--radius-md);
+      background: var(--bg-surface); color: var(--text-primary);
+      font-family: var(--font-display); font-size: 22px; font-weight: 600;
+      cursor: pointer; transition: background 0.12s, transform 0.08s;
+      border: 1px solid var(--border); outline: none;
     }
     .pin-key:active { background: var(--bg-elevated); transform: scale(0.94); }
     .pin-key.special { font-size: 13px; color: var(--text-secondary); }
     .pin-key.danger  { color: var(--accent-red); }
-
-    .auth-status {
-      margin-top: 20px;
-      font-size: 13px;
-      color: var(--text-muted);
-      text-align: center;
-      min-height: 20px;
-    }
+    .auth-status { margin-top: 20px; font-size: 13px; color: var(--text-muted); text-align: center; min-height: 20px; }
     .auth-status.error { color: var(--accent-red); }
     .auth-status.success { color: var(--accent-green); }
-
-    /* ================================================
-       PANTALLA: SETUP PIN (primer uso)
-       ================================================ */
-    #screen-setup {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 32px;
-      gap: 24px;
-    }
-
-    .setup-header {
-      text-align: center;
-    }
-    .setup-header h2 {
-      font-family: var(--font-display);
-      font-size: 26px; font-weight: 700;
-      margin-bottom: 8px;
-    }
+    .setup-header { text-align: center; margin-bottom: 32px; }
+    .setup-header h2 { font-family: var(--font-display); font-size: 26px; font-weight: 700; margin-bottom: 8px; }
     .setup-header p { color: var(--text-secondary); font-size: 14px; }
 
-    /* ================================================
-       PANTALLA PRINCIPAL — Con tabs
-       ================================================ */
-    #screen-main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* Header */
+    /* ── Layout principal ───────────────────────────── */
+    #screen-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
     .app-header {
-      padding: 18px 20px 14px;
-      display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
+      padding: 16px 20px 12px; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
     }
-    .header-brand {
-      font-family: var(--font-display);
-      font-size: 22px; font-weight: 800;
-      letter-spacing: -0.5px;
-    }
+    .header-brand { font-family: var(--font-display); font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
     .header-brand span { color: var(--accent-blue); }
-
-    .header-actions { display: flex; gap: 10px; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
     .icon-btn {
-      width: 42px; height: 42px; border-radius: 12px;
-      border: 1px solid var(--border);
-      background: var(--bg-surface);
-      color: var(--text-secondary);
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s, color 0.15s;
-      font-size: 18px;
+      width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--border);
+      background: var(--bg-surface); color: var(--text-secondary); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s; font-size: 18px; position: relative;
     }
     .icon-btn:active { background: var(--bg-elevated); }
-
-    /* Tabs */
-    .tab-bar {
-      display: flex;
-      padding: 0 20px;
-      gap: 6px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
+    .notif-badge {
+      position: absolute; top: 6px; right: 6px; width: 8px; height: 8px;
+      border-radius: 50%; background: var(--accent-amber);
+      box-shadow: 0 0 6px var(--accent-amber);
     }
+
+    /* ── Tabs ───────────────────────────────────────── */
+    .tab-bar { display: flex; padding: 0 20px; gap: 6px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .tab-btn {
-      flex: 1; padding: 14px 4px;
-      background: none; border: none;
-      color: var(--text-muted);
-      font-family: var(--font-body);
-      font-size: 12px; font-weight: 500;
-      cursor: pointer;
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      border-bottom: 2px solid transparent;
-      transition: color 0.2s, border-color 0.2s;
+      flex: 1; padding: 12px 4px; background: none; border: none;
+      color: var(--text-muted); font-family: var(--font-body); font-size: 11px; font-weight: 500;
+      cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px;
+      border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s;
       position: relative; top: 1px;
     }
     .tab-btn .tab-icon { font-size: 20px; }
-    .tab-btn.active {
-      color: var(--accent-blue);
-      border-bottom-color: var(--accent-blue);
-    }
-
-    /* Contenido scrolleable */
-    .tab-content {
-      flex: 1; overflow-y: auto;
-      padding: 20px 20px 100px;
-      -webkit-overflow-scrolling: touch;
-    }
+    .tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+    .tab-content { flex: 1; overflow-y: auto; padding: 20px 20px 100px; -webkit-overflow-scrolling: touch; }
     .tab-content::-webkit-scrollbar { display: none; }
-
-    /* Tab panels */
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
-    /* ================================================
-       RESUMEN MENSUAL (top del dashboard)
-       ================================================ */
+    /* ── Summary card ───────────────────────────────── */
     .summary-card {
       background: linear-gradient(135deg, #0d2040 0%, #0a1628 100%);
-      border: 1px solid var(--border-glow);
-      border-radius: var(--radius-lg);
-      padding: 22px;
-      margin-bottom: 20px;
-      position: relative;
-      overflow: hidden;
+      border: 1px solid var(--border-glow); border-radius: var(--radius-lg);
+      padding: 22px; margin-bottom: 20px; position: relative; overflow: hidden;
       box-shadow: var(--shadow-glow);
     }
     .summary-card::after {
-      content: '';
-      position: absolute;
-      top: -40px; right: -40px;
-      width: 160px; height: 160px;
+      content: ''; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px;
       background: radial-gradient(circle, rgba(56,189,248,0.12) 0%, transparent 70%);
       pointer-events: none;
     }
-
-    .summary-label {
-      font-size: 12px; color: var(--text-muted); text-transform: uppercase;
-      letter-spacing: 1px; margin-bottom: 6px;
-    }
-    .summary-amount {
-      font-family: var(--font-display);
-      font-size: 38px; font-weight: 800;
-      letter-spacing: -1.5px; color: var(--text-primary);
-      margin-bottom: 4px;
-    }
-    .summary-amount .currency {
-      font-size: 20px; font-weight: 400; color: var(--text-secondary);
-      vertical-align: super; margin-right: 4px;
-    }
-    .summary-sub {
-      font-size: 13px; color: var(--text-secondary);
-      margin-bottom: 18px;
-    }
-    .summary-row {
-      display: flex; gap: 12px;
-    }
-    .summary-chip {
-      flex: 1; background: rgba(255,255,255,0.05);
-      border-radius: var(--radius-sm); padding: 10px 12px;
-      border: 1px solid var(--border);
-    }
+    .summary-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .summary-amount { font-family: var(--font-display); font-size: 38px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 4px; }
+    .summary-amount .currency { font-size: 20px; font-weight: 400; color: var(--text-secondary); vertical-align: super; margin-right: 4px; }
+    .summary-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 18px; }
+    .summary-row { display: flex; gap: 12px; }
+    .summary-chip { flex: 1; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); padding: 10px 12px; border: 1px solid var(--border); }
     .chip-label { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
     .chip-val { font-size: 16px; font-weight: 600; font-family: var(--font-display); }
     .chip-val.green { color: var(--accent-green); }
     .chip-val.amber { color: var(--accent-amber); }
     .chip-val.red   { color: var(--accent-red); }
 
-    /* ================================================
-       SECCIÓN + TÍTULO
-       ================================================ */
-    .section-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 14px;
-    }
-    .section-title {
-      font-family: var(--font-display);
-      font-size: 16px; font-weight: 700;
-      color: var(--text-primary);
-    }
-    .section-count {
-      font-size: 12px; color: var(--text-muted);
-      background: var(--bg-surface); border-radius: 20px;
-      padding: 2px 10px;
-    }
+    /* ── Section header ─────────────────────────────── */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; margin-top: 8px; }
+    .section-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+    .section-count { font-size: 12px; color: var(--text-muted); background: var(--bg-surface); border-radius: 20px; padding: 2px 10px; }
 
-    /* ================================================
-       TARJETAS DE SERVICIOS
-       ================================================ */
+    /* ── Service cards ──────────────────────────────── */
     .services-list { display: flex; flex-direction: column; gap: 12px; }
-
     .service-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 16px;
-      display: flex; align-items: center; gap: 14px;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-      position: relative;
-      overflow: hidden;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 16px; display: flex; align-items: center; gap: 14px;
+      cursor: pointer; transition: background 0.15s; position: relative; overflow: hidden;
     }
     .service-card:active { background: var(--bg-surface); }
-
-    /* Barra lateral de color */
     .service-card::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 8px; bottom: 8px;
+      content: ''; position: absolute; left: 0; top: 8px; bottom: 8px;
       width: 3px; border-radius: 0 2px 2px 0;
     }
     .service-card.cat-streaming::before { background: var(--accent-blue); }
@@ -436,416 +190,241 @@
     .service-card.cat-alquiler::before  { background: var(--accent-red); }
     .service-card.cat-servicio::before  { background: var(--text-secondary); }
     .service-card.cat-otro::before      { background: var(--text-muted); }
-
     .service-icon {
-      width: 46px; height: 46px; border-radius: 12px;
-      background: var(--bg-surface);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 24px;
-      flex-shrink: 0;
-      border: 1px solid var(--border);
+      width: 46px; height: 46px; border-radius: 12px; background: var(--bg-surface);
+      display: flex; align-items: center; justify-content: center; font-size: 24px;
+      flex-shrink: 0; border: 1px solid var(--border);
     }
-
     .service-info { flex: 1; min-width: 0; }
-    .service-name {
-      font-weight: 600; font-size: 15px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      margin-bottom: 3px;
-    }
-    .service-meta {
-      font-size: 12px; color: var(--text-muted);
-      display: flex; align-items: center; gap: 6px;
-    }
-    .service-card-tag {
-      background: var(--bg-elevated); border-radius: 4px;
-      padding: 1px 6px; font-size: 11px; color: var(--text-secondary);
-    }
-
+    .service-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+    .service-meta { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+    .service-card-tag { background: var(--bg-elevated); border-radius: 4px; padding: 1px 6px; font-size: 11px; color: var(--text-secondary); }
     .service-right { text-align: right; flex-shrink: 0; }
-    .service-amount {
-      font-family: var(--font-display);
-      font-size: 17px; font-weight: 700;
-      color: var(--text-primary);
-    }
-    .service-due {
-      font-size: 11px; color: var(--text-muted);
-      margin-top: 2px;
-    }
-    .service-due.urgent { color: var(--accent-amber); }
-    .service-due.overdue { color: var(--accent-red); }
-
-    /* Badge de alerta */
-    .alert-badge {
-      position: absolute;
-      top: 10px; right: 10px;
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--accent-amber);
-      box-shadow: 0 0 6px var(--accent-amber);
-    }
-
-    /* Estado del servicio */
-    .status-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      display: inline-block;
-    }
+    .service-amount { font-family: var(--font-display); font-size: 17px; font-weight: 700; }
+    .service-due { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .service-due.urgent  { color: var(--accent-amber); font-weight: 600; }
+    .service-due.overdue { color: var(--accent-red);   font-weight: 600; }
+    .alert-badge { position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-amber); box-shadow: 0 0 6px var(--accent-amber); }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
     .status-dot.active   { background: var(--accent-green); }
     .status-dot.inactive { background: var(--text-muted); }
 
-    /* ================================================
-       EMPTY STATE
-       ================================================ */
-    .empty-state {
-      text-align: center; padding: 60px 20px;
-      color: var(--text-muted);
-    }
+    /* ── Empty state ────────────────────────────────── */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
     .empty-state .empty-icon { font-size: 56px; margin-bottom: 16px; opacity: 0.4; }
-    .empty-state h3 {
-      font-family: var(--font-display); font-size: 18px; font-weight: 600;
-      color: var(--text-secondary); margin-bottom: 8px;
-    }
+    .empty-state h3 { font-family: var(--font-display); font-size: 18px; color: var(--text-secondary); margin-bottom: 8px; }
     .empty-state p { font-size: 14px; line-height: 1.6; }
 
-    /* ================================================
-       FAB — Botón flotante agregar
-       ================================================ */
+    /* ── FAB ────────────────────────────────────────── */
     .fab {
-      position: fixed;
-      bottom: calc(80px + var(--safe-bottom));
-      right: 20px;
-      width: 58px; height: 58px;
-      border-radius: 18px;
+      position: fixed; bottom: calc(80px + var(--safe-bottom)); right: 20px;
+      width: 58px; height: 58px; border-radius: 18px;
       background: linear-gradient(135deg, var(--accent-blue), #0ea5e9);
-      border: none;
-      color: #fff;
-      font-size: 26px;
-      cursor: pointer;
+      border: none; color: #fff; font-size: 26px; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 6px 24px rgba(56,189,248,0.35);
-      transition: transform 0.15s, box-shadow 0.15s;
-      z-index: 100;
+      transition: transform 0.15s; z-index: 100;
     }
     .fab:active { transform: scale(0.92); }
 
-    /* ================================================
-       BOTTOM NAV (alternativa visual a tabs)
-       ================================================ */
-    /* (usamos tab-bar arriba, no duplicamos) */
-
-    /* ================================================
-       MODAL / DRAWER
-       ================================================ */
-    .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.7);
-      z-index: 200;
-      display: flex; align-items: flex-end;
-      backdrop-filter: blur(4px);
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.25s;
-    }
-    .modal-overlay.open { opacity: 1; pointer-events: all; }
-
-    .modal-sheet {
-      width: 100%;
-      background: var(--bg-card);
-      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-      padding: 12px 24px 40px;
-      max-height: 90vh;
-      overflow-y: auto;
-      transform: translateY(100%);
-      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-    }
-    .modal-overlay.open .modal-sheet { transform: translateY(0); }
-
-    .modal-handle {
-      width: 40px; height: 4px; border-radius: 2px;
-      background: var(--border);
-      margin: 0 auto 20px;
-    }
-
-    .modal-title {
-      font-family: var(--font-display);
-      font-size: 20px; font-weight: 700;
-      margin-bottom: 24px; text-align: center;
-    }
-
-    /* ================================================
-       FORMULARIO
-       ================================================ */
-    .form-group { margin-bottom: 18px; }
-    .form-label {
-      display: block;
-      font-size: 13px; font-weight: 500;
-      color: var(--text-secondary);
-      margin-bottom: 8px; letter-spacing: 0.2px;
-    }
-    .form-input, .form-select {
-      width: 100%; padding: 14px 16px;
-      background: var(--bg-base);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      color: var(--text-primary);
-      font-family: var(--font-body); font-size: 16px;
-      outline: none; transition: border-color 0.2s;
-      -webkit-appearance: none;
-    }
-    .form-input:focus, .form-select:focus {
-      border-color: var(--accent-blue);
-    }
-    .form-input::placeholder { color: var(--text-muted); }
-
-    .form-select option { background: var(--bg-card); }
-
-    .form-row { display: flex; gap: 12px; }
-    .form-row .form-group { flex: 1; }
-
-    /* Selector de emoji/icono */
-    .emoji-grid {
-      display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;
-      margin-top: 8px;
-    }
-    .emoji-opt {
-      aspect-ratio: 1; border-radius: 10px;
-      background: var(--bg-base);
-      border: 2px solid var(--border);
-      font-size: 22px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: all 0.15s;
-    }
-    .emoji-opt:active, .emoji-opt.selected {
-      border-color: var(--accent-blue);
-      background: rgba(56,189,248,0.1);
-    }
-
-    /* ================================================
-       BOTONES
-       ================================================ */
-    .btn {
-      width: 100%; padding: 16px;
-      border-radius: var(--radius-md);
-      border: none; cursor: pointer;
-      font-family: var(--font-body); font-size: 16px; font-weight: 600;
-      transition: opacity 0.15s, transform 0.1s;
-      outline: none;
-    }
-    .btn:active { transform: scale(0.97); }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent-blue), #0ea5e9);
-      color: #fff;
-      box-shadow: 0 4px 16px rgba(56,189,248,0.25);
-    }
-    .btn-secondary {
-      background: var(--bg-surface);
-      color: var(--text-secondary);
-      border: 1px solid var(--border);
-    }
-    .btn-danger {
-      background: rgba(248,113,113,0.1);
-      color: var(--accent-red);
-      border: 1px solid rgba(248,113,113,0.2);
-    }
-    .btn + .btn { margin-top: 10px; }
-
-    /* ================================================
-       TARJETAS (panel de tarjetas)
-       ================================================ */
-    .cards-grid {
-      display: flex; flex-direction: column; gap: 14px;
-    }
-
+    /* ── Cards tab ──────────────────────────────────── */
+    .cards-grid { display: flex; flex-direction: column; gap: 14px; }
     .card-item {
-      background: linear-gradient(135deg, var(--bg-surface), var(--bg-card));
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 20px;
-      cursor: pointer;
-      transition: background 0.15s;
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 20px; cursor: pointer; transition: opacity 0.15s;
       position: relative; overflow: hidden;
     }
-    .card-item:active { background: var(--bg-elevated); }
-
-    .card-item::after {
-      content: '';
-      position: absolute;
-      top: -30px; right: -30px;
-      width: 120px; height: 120px;
-      background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
-    }
-
+    .card-item:active { opacity: 0.8; }
+    .card-item::after { content: ''; position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%); }
     .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
     .card-network { font-size: 22px; }
-    .card-type-badge {
-      font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
-      text-transform: uppercase;
-      background: var(--bg-elevated); border-radius: 6px;
-      padding: 3px 8px; color: var(--text-muted);
-    }
-    .card-number {
-      font-family: var(--font-display); font-size: 18px; font-weight: 600;
-      letter-spacing: 4px; color: var(--text-secondary);
-      margin-bottom: 12px;
-    }
+    .card-type-badge { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; background: rgba(0,0,0,0.3); border-radius: 6px; padding: 3px 8px; color: rgba(255,255,255,0.6); }
+    .card-number { font-family: var(--font-display); font-size: 18px; font-weight: 600; letter-spacing: 4px; color: rgba(255,255,255,0.5); margin-bottom: 12px; }
     .card-alias { font-weight: 600; font-size: 15px; }
     .card-bottom { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 8px; }
-    .card-services-count { font-size: 12px; color: var(--text-muted); }
+    .card-services-count { font-size: 12px; color: rgba(255,255,255,0.4); }
 
-    /* ================================================
-       PRÓXIMOS VENCIMIENTOS (panel alertas)
-       ================================================ */
+    /* ── Alert tab ──────────────────────────────────── */
     .alert-list { display: flex; flex-direction: column; gap: 10px; }
-
     .alert-item {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 14px 16px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 14px 16px;
       display: flex; align-items: center; gap: 14px;
     }
-    .alert-icon-wrap {
-      width: 42px; height: 42px; border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; flex-shrink: 0;
-    }
+    .alert-item.urgent  { border-color: rgba(251,191,36,0.2); }
+    .alert-item.overdue { border-color: rgba(248,113,113,0.2); }
+    .alert-icon-wrap { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
     .alert-icon-wrap.urgent  { background: rgba(251,191,36,0.1); }
     .alert-icon-wrap.overdue { background: rgba(248,113,113,0.1); }
     .alert-icon-wrap.ok      { background: rgba(52,211,153,0.1); }
-
     .alert-info { flex: 1; }
     .alert-name { font-weight: 600; font-size: 14px; }
     .alert-date { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-    .alert-days {
-      font-family: var(--font-display); font-size: 22px; font-weight: 800;
-      text-align: right; flex-shrink: 0;
-    }
+    .alert-days { font-family: var(--font-display); font-size: 22px; font-weight: 800; text-align: right; flex-shrink: 0; }
     .alert-days.urgent  { color: var(--accent-amber); }
     .alert-days.overdue { color: var(--accent-red); }
     .alert-days.ok      { color: var(--accent-green); }
     .alert-days-label { font-size: 10px; color: var(--text-muted); text-align: right; }
 
-    /* ================================================
-       DETAIL MODAL (ver servicio)
-       ================================================ */
-    .detail-icon {
-      width: 72px; height: 72px; border-radius: 20px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 38px; margin: 0 auto 16px;
+    /* ── Notif panel ────────────────────────────────── */
+    .notif-status-card {
+      border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px;
+      border: 1px solid var(--border); display: flex; gap: 16px; align-items: flex-start;
     }
-    .detail-name {
-      font-family: var(--font-display);
-      font-size: 24px; font-weight: 800;
-      text-align: center; margin-bottom: 4px;
+    .notif-status-card.active  { background: rgba(52,211,153,0.06); border-color: rgba(52,211,153,0.2); }
+    .notif-status-card.pending { background: rgba(251,191,36,0.06); border-color: rgba(251,191,36,0.2); }
+    .notif-status-card.off     { background: var(--bg-card); }
+    .notif-icon { font-size: 32px; flex-shrink: 0; }
+    .notif-info h3 { font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .notif-info p  { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+    .notif-schedule { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 16px; }
+    .notif-schedule-row { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+    .notif-schedule-row:last-child { border-bottom: none; }
+    .notif-schedule-label { font-size: 14px; }
+    .notif-schedule-val   { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 10px; }
+    .toggle-label { font-size: 14px; }
+    .toggle { position: relative; width: 50px; height: 28px; border-radius: 14px; background: var(--bg-elevated); border: 1px solid var(--border); cursor: pointer; transition: background 0.25s; flex-shrink: 0; }
+    .toggle.on { background: var(--accent-green); border-color: var(--accent-green); }
+    .toggle::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left 0.25s; }
+    .toggle.on::after { left: 25px; }
+    .notif-test-btn {
+      width: 100%; padding: 14px; border-radius: var(--radius-md); border: 1px dashed var(--border-glow);
+      background: rgba(56,189,248,0.05); color: var(--accent-blue); font-family: var(--font-body);
+      font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s;
     }
-    .detail-category {
-      text-align: center; font-size: 13px; color: var(--text-muted);
-      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 24px;
-    }
+    .notif-test-btn:active { background: rgba(56,189,248,0.1); }
 
-    .detail-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-      margin-bottom: 24px;
+    /* ── Modal / Drawer ─────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200;
+      display: flex; align-items: flex-end; backdrop-filter: blur(4px);
+      opacity: 0; pointer-events: none; transition: opacity 0.25s;
     }
-    .detail-cell {
-      background: var(--bg-base); border-radius: var(--radius-sm);
-      padding: 14px; border: 1px solid var(--border);
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-sheet {
+      width: 100%; background: var(--bg-card); border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      padding: 12px 24px 40px; max-height: 90vh; overflow-y: auto;
+      transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
     }
+    .modal-overlay.open .modal-sheet { transform: translateY(0); }
+    .modal-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto 20px; }
+    .modal-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 24px; text-align: center; }
+
+    /* ── Formularios ────────────────────────────────── */
+    .form-group { margin-bottom: 18px; }
+    .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
+    .form-input, .form-select {
+      width: 100%; padding: 14px 16px; background: var(--bg-base);
+      border: 1px solid var(--border); border-radius: var(--radius-md);
+      color: var(--text-primary); font-family: var(--font-body); font-size: 16px;
+      outline: none; transition: border-color 0.2s; -webkit-appearance: none;
+    }
+    .form-input:focus, .form-select:focus { border-color: var(--accent-blue); }
+    .form-input::placeholder { color: var(--text-muted); }
+    .form-select option { background: var(--bg-card); }
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
+    .emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; }
+    .emoji-opt {
+      aspect-ratio: 1; border-radius: 10px; background: var(--bg-base);
+      border: 2px solid var(--border); font-size: 22px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .emoji-opt.selected { border-color: var(--accent-blue); background: rgba(56,189,248,0.1); }
+
+    /* ── Botones ────────────────────────────────────── */
+    .btn { width: 100%; padding: 16px; border-radius: var(--radius-md); border: none; cursor: pointer; font-family: var(--font-body); font-size: 16px; font-weight: 600; transition: opacity 0.15s, transform 0.1s; outline: none; }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: linear-gradient(135deg, var(--accent-blue), #0ea5e9); color: #fff; box-shadow: 0 4px 16px rgba(56,189,248,0.25); }
+    .btn-secondary { background: var(--bg-surface); color: var(--text-secondary); border: 1px solid var(--border); }
+    .btn-danger    { background: rgba(248,113,113,0.1); color: var(--accent-red); border: 1px solid rgba(248,113,113,0.2); }
+    .btn-green     { background: linear-gradient(135deg, var(--accent-green), #059669); color: #fff; box-shadow: 0 4px 16px rgba(52,211,153,0.25); }
+    .btn + .btn { margin-top: 10px; }
+
+    /* ── Detalle servicio ───────────────────────────── */
+    .detail-icon { width: 72px; height: 72px; border-radius: 20px; background: var(--bg-surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 38px; margin: 0 auto 16px; }
+    .detail-name { font-family: var(--font-display); font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 4px; }
+    .detail-category { text-align: center; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 24px; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .detail-cell { background: var(--bg-base); border-radius: var(--radius-sm); padding: 14px; border: 1px solid var(--border); }
     .detail-cell-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
     .detail-cell-val { font-weight: 600; font-size: 15px; }
+    .toggle-wrap { display: flex; align-items: center; justify-content: space-between; background: var(--bg-base); border-radius: var(--radius-sm); padding: 14px 16px; border: 1px solid var(--border); margin-bottom: 20px; }
+    .toggle-wrap .toggle-label { font-size: 15px; font-weight: 500; }
 
-    /* Toggle activo/inactivo */
-    .toggle-wrap {
-      display: flex; align-items: center; justify-content: space-between;
-      background: var(--bg-base); border-radius: var(--radius-sm);
-      padding: 14px 16px; border: 1px solid var(--border);
-      margin-bottom: 12px;
+    /* ── Flujo de pago ──────────────────────────────── */
+    .pay-flow { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    .pay-step {
+      background: var(--bg-base); border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 14px 16px; display: flex; align-items: center; gap: 14px;
+      cursor: pointer; transition: border-color 0.2s;
     }
-    .toggle-label { font-size: 15px; font-weight: 500; }
-    .toggle {
-      position: relative; width: 50px; height: 28px;
-      border-radius: 14px; background: var(--bg-elevated);
-      border: 1px solid var(--border); cursor: pointer;
-      transition: background 0.25s;
+    .pay-step.done { border-color: rgba(52,211,153,0.4); background: rgba(52,211,153,0.04); }
+    .pay-step.active { border-color: rgba(56,189,248,0.4); }
+    .pay-step-num {
+      width: 32px; height: 32px; border-radius: 50%; background: var(--bg-elevated);
+      border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 14px; font-weight: 700; flex-shrink: 0;
+      color: var(--text-muted);
     }
-    .toggle.on { background: var(--accent-green); border-color: var(--accent-green); }
-    .toggle::after {
-      content: '';
-      position: absolute;
-      left: 3px; top: 3px;
-      width: 20px; height: 20px; border-radius: 50%;
-      background: #fff;
-      transition: left 0.25s;
-    }
-    .toggle.on::after { left: 25px; }
+    .pay-step.done  .pay-step-num { background: var(--accent-green); border-color: var(--accent-green); color: #fff; }
+    .pay-step.active .pay-step-num { background: var(--accent-blue); border-color: var(--accent-blue); color: #fff; }
+    .pay-step-info { flex: 1; }
+    .pay-step-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+    .pay-step-desc  { font-size: 12px; color: var(--text-muted); }
+    .pay-step-check { font-size: 20px; }
 
-    /* ================================================
-       SNACKBAR / TOAST
-       ================================================ */
+    /* ── Catalog de seeds ───────────────────────────── */
+    .seed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    .seed-item {
+      background: var(--bg-base); border: 2px solid var(--border); border-radius: var(--radius-md);
+      padding: 14px 8px; text-align: center; cursor: pointer; transition: all 0.15s;
+    }
+    .seed-item:active { transform: scale(0.95); }
+    .seed-item.selected { border-color: var(--accent-blue); background: rgba(56,189,248,0.08); }
+    .seed-item .seed-icon { font-size: 28px; margin-bottom: 6px; }
+    .seed-item .seed-name { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+
+    /* ── Toast ──────────────────────────────────────── */
     #toast {
       position: fixed; bottom: calc(100px + var(--safe-bottom)); left: 20px; right: 20px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 14px 18px;
-      font-size: 14px; font-weight: 500;
-      z-index: 500;
-      transform: translateY(20px); opacity: 0;
-      transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-      pointer-events: none;
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 14px 18px; font-size: 14px; font-weight: 500;
+      z-index: 500; transform: translateY(20px); opacity: 0;
+      transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1); pointer-events: none;
       display: flex; align-items: center; gap: 10px;
     }
     #toast.show { transform: translateY(0); opacity: 1; }
     #toast.success { border-color: rgba(52,211,153,0.3); }
     #toast.error   { border-color: rgba(248,113,113,0.3); }
+    #toast.info    { border-color: rgba(56,189,248,0.3); }
 
-    /* ================================================
-       ANIMACIONES DE ENTRADA
-       ================================================ */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    /* ── Animations ─────────────────────────────────── */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
     .animate-in { animation: fadeInUp 0.35s ease both; }
-
-    /* Stagger para listas */
-    .service-card:nth-child(1) { animation-delay: 0.05s; }
-    .service-card:nth-child(2) { animation-delay: 0.10s; }
-    .service-card:nth-child(3) { animation-delay: 0.15s; }
-    .service-card:nth-child(4) { animation-delay: 0.20s; }
-    .service-card:nth-child(5) { animation-delay: 0.25s; }
-
-    /* ================================================
-       LOADING SPINNER
-       ================================================ */
-    .spinner {
-      width: 28px; height: 28px; border-radius: 50%;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent-blue);
-      animation: spin 0.7s linear infinite;
-      margin: 0 auto;
-    }
+    .service-card:nth-child(1) { animation-delay: 0.04s; }
+    .service-card:nth-child(2) { animation-delay: 0.08s; }
+    .service-card:nth-child(3) { animation-delay: 0.12s; }
+    .service-card:nth-child(4) { animation-delay: 0.16s; }
+    .service-card:nth-child(5) { animation-delay: 0.20s; }
+    .service-card:nth-child(6) { animation-delay: 0.24s; }
+    .service-card:nth-child(7) { animation-delay: 0.28s; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ================================================
-       HIDDEN UTILITY
-       ================================================ */
+    .spinner { width: 24px; height: 24px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--accent-blue); animation: spin 0.7s linear infinite; }
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
-
-<!-- =====================================================
-     APP ROOT
-     ===================================================== -->
 <div id="app">
 
-  <!-- ===== PANTALLA: SETUP (primer uso) ===== -->
+  <!-- ═══ SETUP (primer uso) ═══ -->
   <div id="screen-setup" class="hidden">
     <div class="setup-header animate-in">
       <div style="font-size:52px;margin-bottom:16px">🔐</div>
       <h2>Configurar PIN</h2>
-      <p>Crea un PIN de 6 dígitos como respaldo de autenticación</p>
+      <p>Crea un PIN de 6 dígitos de respaldo</p>
     </div>
     <div class="pin-section animate-in" style="animation-delay:0.1s">
       <div class="pin-title" id="setup-subtitle">Ingresa tu PIN</div>
@@ -864,7 +443,7 @@
         <button class="pin-key" onclick="setupPin('7')">7</button>
         <button class="pin-key" onclick="setupPin('8')">8</button>
         <button class="pin-key" onclick="setupPin('9')">9</button>
-        <button class="pin-key special" onclick="setupPin('bio')">🪪</button>
+        <button class="pin-key special">  </button>
         <button class="pin-key" onclick="setupPin('0')">0</button>
         <button class="pin-key danger" onclick="setupPin('del')">⌫</button>
       </div>
@@ -872,18 +451,14 @@
     <div id="setup-status" class="auth-status"></div>
   </div>
 
-  <!-- ===== PANTALLA: AUTH ===== -->
+  <!-- ═══ AUTH ═══ -->
   <div id="screen-auth" class="hidden">
     <div class="auth-logo animate-in">Bill<span>Manager</span></div>
     <div class="auth-tagline animate-in" style="animation-delay:0.05s">Gestión inteligente de pagos</div>
 
-    <!-- Botón biométrico -->
     <div class="bio-btn-wrap animate-in" style="animation-delay:0.1s">
-      <div class="bio-pulse"></div>
-      <div class="bio-pulse"></div>
-      <div class="bio-pulse"></div>
+      <div class="bio-pulse"></div><div class="bio-pulse"></div><div class="bio-pulse"></div>
       <button class="bio-btn" id="bio-btn" onclick="doBioAuth()">
-        <!-- Ícono huella digital SVG -->
         <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 20C12 13.373 17.373 8 24 8C30.627 8 36 13.373 36 20" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
           <path d="M8 22C8 12.059 15.059 4 24 4C32.941 4 40 12.059 40 22" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
@@ -893,14 +468,11 @@
         </svg>
       </button>
     </div>
-
     <div class="bio-label animate-in" style="animation-delay:0.15s">
       <strong>Toca para autenticar</strong>
-      Usa tu huella digital registrada
+      Huella digital del dispositivo
     </div>
-
-    <!-- PIN fallback -->
-    <div class="pin-section animate-in" style="animation-delay:0.2s;margin-top:32px">
+    <div class="pin-section animate-in" style="animation-delay:0.2s;margin-top:24px">
       <div class="pin-title">o ingresa tu PIN</div>
       <div class="pin-dots" id="auth-dots">
         <div class="pin-dot"></div><div class="pin-dot"></div>
@@ -922,107 +494,140 @@
         <button class="pin-key danger" onclick="authPin('del')">⌫</button>
       </div>
     </div>
-
     <div id="auth-status" class="auth-status animate-in" style="animation-delay:0.25s"></div>
   </div>
 
-  <!-- ===== PANTALLA: PRINCIPAL ===== -->
+  <!-- ═══ PANTALLA PRINCIPAL ═══ -->
   <div id="screen-main" class="hidden">
-
-    <!-- Header -->
     <div class="app-header">
       <div class="header-brand">Bill<span>Manager</span></div>
       <div class="header-actions">
-        <button class="icon-btn" onclick="showToast('🔔 Notificaciones próximamente en Fase 2','info')">🔔</button>
+        <button class="icon-btn" onclick="switchTab('notif')" id="notif-btn">
+          🔔
+          <div class="notif-badge hidden" id="notif-badge"></div>
+        </button>
         <button class="icon-btn" onclick="doLock()">🔒</button>
       </div>
     </div>
 
-    <!-- Tabs -->
     <div class="tab-bar">
       <button class="tab-btn active" data-tab="services" onclick="switchTab('services')">
-        <span class="tab-icon">📋</span> Servicios
+        <span class="tab-icon">📋</span>Servicios
       </button>
       <button class="tab-btn" data-tab="cards" onclick="switchTab('cards')">
-        <span class="tab-icon">💳</span> Tarjetas
+        <span class="tab-icon">💳</span>Tarjetas
       </button>
       <button class="tab-btn" data-tab="alerts" onclick="switchTab('alerts')">
-        <span class="tab-icon">⏰</span> Alertas
+        <span class="tab-icon">⏰</span>Alertas
+      </button>
+      <button class="tab-btn" data-tab="notif" onclick="switchTab('notif')">
+        <span class="tab-icon">🔔</span>Avisos
       </button>
     </div>
 
-    <!-- Contenido -->
     <div class="tab-content">
 
-      <!-- === TAB: SERVICIOS === -->
+      <!-- ═ Tab: Servicios ═ -->
       <div id="tab-services" class="tab-panel active">
-        <!-- Resumen mensual -->
         <div class="summary-card animate-in">
           <div class="summary-label">Gasto mensual total</div>
           <div class="summary-amount">
-            <span class="currency">Bs.</span>
-            <span id="total-monthly">0</span>
+            <span class="currency">Bs.</span><span id="total-monthly">0</span>
           </div>
           <div class="summary-sub" id="total-services-count">0 servicios activos</div>
           <div class="summary-row">
-            <div class="summary-chip">
-              <div class="chip-label">Al día</div>
-              <div class="chip-val green" id="count-ok">0</div>
-            </div>
-            <div class="summary-chip">
-              <div class="chip-label">Próximos</div>
-              <div class="chip-val amber" id="count-urgent">0</div>
-            </div>
-            <div class="summary-chip">
-              <div class="chip-label">Vencidos</div>
-              <div class="chip-val red" id="count-overdue">0</div>
-            </div>
+            <div class="summary-chip"><div class="chip-label">Al día</div><div class="chip-val green" id="count-ok">0</div></div>
+            <div class="summary-chip"><div class="chip-label">Próximos</div><div class="chip-val amber" id="count-urgent">0</div></div>
+            <div class="summary-chip"><div class="chip-label">Vencidos</div><div class="chip-val red" id="count-overdue">0</div></div>
           </div>
         </div>
 
-        <!-- Lista de servicios -->
         <div class="section-header">
           <div class="section-title">Mis servicios</div>
           <div class="section-count" id="services-count-label">0</div>
         </div>
-        <div class="services-list" id="services-list">
-          <!-- Renderizado dinámico -->
-        </div>
+        <div class="services-list" id="services-list"></div>
       </div>
 
-      <!-- === TAB: TARJETAS === -->
+      <!-- ═ Tab: Tarjetas ═ -->
       <div id="tab-cards" class="tab-panel">
         <div class="section-header">
           <div class="section-title">Mis tarjetas</div>
           <div class="section-count" id="cards-count-label">0</div>
         </div>
-        <div class="cards-grid" id="cards-list">
-          <!-- Renderizado dinámico -->
-        </div>
+        <div class="cards-grid" id="cards-list"></div>
       </div>
 
-      <!-- === TAB: ALERTAS === -->
+      <!-- ═ Tab: Alertas ═ -->
       <div id="tab-alerts" class="tab-panel">
         <div class="section-header">
           <div class="section-title">Próximos vencimientos</div>
         </div>
-        <div class="alert-list" id="alerts-list">
-          <!-- Renderizado dinámico -->
+        <div class="alert-list" id="alerts-list"></div>
+      </div>
+
+      <!-- ═ Tab: Notificaciones ═ -->
+      <div id="tab-notif" class="tab-panel">
+        <div id="notif-status-wrap"></div>
+
+        <div class="section-header" style="margin-top:8px">
+          <div class="section-title">Calendario de alertas</div>
+        </div>
+        <div class="notif-schedule" id="notif-schedule-list">
+          <div class="notif-schedule-row">
+            <span class="notif-schedule-label" style="color:var(--text-muted)">Cargando...</span>
+          </div>
+        </div>
+
+        <div class="section-header" style="margin-top:4px">
+          <div class="section-title">Configuración</div>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Alertar 7 días antes</span>
+          <div class="toggle on" id="toggle-7d" onclick="toggleNotifPref('7d',this)"></div>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Alertar 3 días antes</span>
+          <div class="toggle on" id="toggle-3d" onclick="toggleNotifPref('3d',this)"></div>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Alertar el día del vencimiento</span>
+          <div class="toggle on" id="toggle-0d" onclick="toggleNotifPref('0d',this)"></div>
+        </div>
+
+        <div style="margin-top:16px">
+          <button class="notif-test-btn" onclick="sendTestNotification()">
+            🔔 Enviar notificación de prueba
+          </button>
         </div>
       </div>
 
     </div><!-- /tab-content -->
 
-    <!-- FAB -->
     <button class="fab" id="fab-btn" onclick="openAddModal()">+</button>
-
   </div><!-- /screen-main -->
 
 </div><!-- /app -->
 
-<!-- =====================================================
-     MODAL: AGREGAR SERVICIO
-     ===================================================== -->
+<!-- ═══ MODAL: Agregar servicio rápido (catálogo) ═══ -->
+<div class="modal-overlay" id="modal-quick-add" onclick="closeOnOverlay(event,'modal-quick-add')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Agregar servicio</div>
+
+    <div style="margin-bottom:16px">
+      <div class="section-title" style="font-size:14px;margin-bottom:12px">Servicios comunes</div>
+      <div class="seed-grid" id="seed-grid"></div>
+    </div>
+
+    <button class="btn btn-secondary" style="margin-bottom:10px" onclick="openManualAdd()">
+      ✏️ Ingresar manualmente
+    </button>
+    <button class="btn btn-secondary" onclick="closeModal('modal-quick-add')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL: Formulario servicio ═══ -->
 <div class="modal-overlay" id="modal-service" onclick="closeOnOverlay(event,'modal-service')">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -1032,14 +637,10 @@
       <label class="form-label">Nombre del servicio</label>
       <input type="text" class="form-input" id="svc-name" placeholder="ej. Netflix, Claude Pro..." />
     </div>
-
     <div class="form-group">
       <label class="form-label">Ícono</label>
-      <div class="emoji-grid" id="emoji-picker">
-        <!-- Generado por JS -->
-      </div>
+      <div class="emoji-grid" id="emoji-picker"></div>
     </div>
-
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Categoría</label>
@@ -1061,7 +662,6 @@
         </select>
       </div>
     </div>
-
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Monto</label>
@@ -1072,17 +672,14 @@
         <input type="number" class="form-input" id="svc-day" placeholder="1-31" min="1" max="31" inputmode="numeric" />
       </div>
     </div>
-
     <div class="form-group">
       <label class="form-label">Tarjeta asociada</label>
       <select class="form-select" id="svc-card">
         <option value="">— Sin tarjeta —</option>
-        <!-- Poblado dinámicamente -->
       </select>
     </div>
-
     <div class="form-group">
-      <label class="form-label">URL del servicio (para abrir al pagar)</label>
+      <label class="form-label">URL del servicio</label>
       <input type="url" class="form-input" id="svc-url" placeholder="https://..." inputmode="url" />
     </div>
 
@@ -1092,19 +689,15 @@
   </div>
 </div>
 
-<!-- =====================================================
-     MODAL: AGREGAR TARJETA
-     ===================================================== -->
+<!-- ═══ MODAL: Tarjeta ═══ -->
 <div class="modal-overlay" id="modal-card" onclick="closeOnOverlay(event,'modal-card')">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">Nueva tarjeta</div>
-
+    <div class="modal-title" id="modal-card-title">Nueva tarjeta</div>
     <div class="form-group">
       <label class="form-label">Alias / nombre</label>
-      <input type="text" class="form-input" id="card-alias" placeholder="ej. Visa Banco Nacional" />
+      <input type="text" class="form-input" id="card-alias" placeholder="ej. Visa BNB" />
     </div>
-
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Últimos 4 dígitos</label>
@@ -1120,51 +713,37 @@
         </select>
       </div>
     </div>
-
     <div class="form-group">
       <label class="form-label">Banco</label>
       <input type="text" class="form-input" id="card-bank" placeholder="ej. Banco Nacional de Bolivia" />
     </div>
-
     <div class="form-group">
-      <label class="form-label">Color de tarjeta</label>
-      <div style="display:flex;gap:10px;margin-top:8px" id="card-color-picker">
-        <!-- Generado por JS -->
-      </div>
+      <label class="form-label">Color</label>
+      <div style="display:flex;gap:10px;margin-top:8px" id="card-color-picker"></div>
     </div>
-
     <button class="btn btn-primary" onclick="saveCard()">Guardar tarjeta</button>
     <button class="btn btn-secondary" onclick="closeModal('modal-card')">Cancelar</button>
   </div>
 </div>
 
-<!-- =====================================================
-     MODAL: DETALLE DE SERVICIO
-     ===================================================== -->
+<!-- ═══ MODAL: Detalle + flujo de pago ═══ -->
 <div class="modal-overlay" id="modal-detail" onclick="closeOnOverlay(event,'modal-detail')">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="detail-icon" id="detail-icon">📋</div>
     <div class="detail-name" id="detail-name">Servicio</div>
     <div class="detail-category" id="detail-category">Categoría</div>
-
     <div class="detail-grid">
-      <div class="detail-cell">
-        <div class="detail-cell-label">Monto mensual</div>
-        <div class="detail-cell-val" id="detail-amount">—</div>
-      </div>
-      <div class="detail-cell">
-        <div class="detail-cell-label">Día de pago</div>
-        <div class="detail-cell-val" id="detail-day">—</div>
-      </div>
-      <div class="detail-cell">
-        <div class="detail-cell-label">Tarjeta</div>
-        <div class="detail-cell-val" id="detail-card">—</div>
-      </div>
-      <div class="detail-cell">
-        <div class="detail-cell-label">Próximo pago</div>
-        <div class="detail-cell-val" id="detail-next">—</div>
-      </div>
+      <div class="detail-cell"><div class="detail-cell-label">Monto</div><div class="detail-cell-val" id="detail-amount">—</div></div>
+      <div class="detail-cell"><div class="detail-cell-label">Día de pago</div><div class="detail-cell-val" id="detail-day">—</div></div>
+      <div class="detail-cell"><div class="detail-cell-label">Tarjeta</div><div class="detail-cell-val" id="detail-card">—</div></div>
+      <div class="detail-cell"><div class="detail-cell-label">Próximo pago</div><div class="detail-cell-val" id="detail-next">—</div></div>
+    </div>
+
+    <!-- Checklist de pago -->
+    <div id="pay-checklist-wrap" class="hidden">
+      <div class="section-title" style="font-size:14px;margin-bottom:12px">✅ Checklist antes de pagar</div>
+      <div class="pay-flow" id="pay-flow"></div>
     </div>
 
     <div class="toggle-wrap">
@@ -1172,27 +751,43 @@
       <div class="toggle" id="detail-toggle" onclick="toggleServiceActive()"></div>
     </div>
 
-    <button class="btn btn-primary" id="detail-pay-btn" onclick="goToPay()">
-      🚀 Ir a pagar
-    </button>
+    <button class="btn btn-green" id="detail-pay-btn" onclick="startPayFlow()">💳 Flujo de pago guiado</button>
     <button class="btn btn-secondary" onclick="editCurrentService()">✏️ Editar</button>
     <button class="btn btn-secondary" onclick="closeModal('modal-detail')">Cerrar</button>
   </div>
 </div>
 
-<!-- Toast -->
-<div id="toast">
-  <span id="toast-icon">✅</span>
-  <span id="toast-msg">Mensaje</span>
+<!-- ═══ MODAL: Confirmar pago realizado ═══ -->
+<div class="modal-overlay" id="modal-confirm-pay" onclick="closeOnOverlay(event,'modal-confirm-pay')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:16px 0">
+      <div style="font-size:56px;margin-bottom:16px">🎉</div>
+      <div class="modal-title">¿Pago realizado?</div>
+      <p style="color:var(--text-secondary);font-size:14px;margin-bottom:24px">
+        Confirma que completaste el pago para registrarlo en el historial
+      </p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Monto real pagado</label>
+      <input type="number" class="form-input" id="confirm-amount" placeholder="0.00" inputmode="decimal" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nota (opcional)</label>
+      <input type="text" class="form-input" id="confirm-note" placeholder="ej. Con descuento, cuota 3/12..." />
+    </div>
+    <button class="btn btn-green" onclick="confirmPayment()">✅ Sí, pagué</button>
+    <button class="btn btn-secondary" onclick="closeModal('modal-confirm-pay')">Aún no</button>
+  </div>
 </div>
 
-<!-- =====================================================
+<div id="toast"><span id="toast-icon">✅</span><span id="toast-msg">Mensaje</span></div>
+
+<!-- ═══════════════════════════════════════════════════
      JAVASCRIPT
-     ===================================================== -->
+     ═══════════════════════════════════════════════════ -->
 <script>
-/* =====================================================
-   ESTADO GLOBAL
-   ===================================================== */
+/* ── Estado global ────────────────────────────────── */
 const App = {
   isAuthenticated: false,
   currentTab: 'services',
@@ -1200,300 +795,185 @@ const App = {
   editingServiceId: null,
   selectedEmoji: '📋',
   selectedCardColor: '#1a2740',
+  setupStep: 'first',
   setupPinFirst: '',
-  setupPinSecond: '',
-  setupStep: 'first', // 'first' | 'second'
+  setupPinEntry: '',
   authPinEntry: '',
-  setupPinEntry: ''
+  payFlowState: { fundosOk: false, tarjetaOk: false, servicioOk: false },
+  notifPrefs: { d7: true, d3: true, d0: true }
 };
 
-/* =====================================================
-   INDEXEDDB — Persistencia local
-   ===================================================== */
+/* ── Catálogo de servicios pre-cargados ──────────── */
+const SERVICE_CATALOG = [
+  { name: 'Netflix',       icon: '🎬', category: 'streaming', currency: 'USD', amount: 15.49, day: 12, url: 'https://www.netflix.com' },
+  { name: 'Disney+',       icon: '🏰', category: 'streaming', currency: 'USD', amount: 13.99, day: 15, url: 'https://www.disneyplus.com' },
+  { name: 'Spotify',       icon: '🎵', category: 'streaming', currency: 'USD', amount: 9.99,  day: 8,  url: 'https://www.spotify.com' },
+  { name: 'Claude Pro',    icon: '🤖', category: 'ia',        currency: 'USD', amount: 20.00, day: 5,  url: 'https://claude.ai' },
+  { name: 'ChatGPT Plus',  icon: '💬', category: 'ia',        currency: 'USD', amount: 20.00, day: 18, url: 'https://chat.openai.com' },
+  { name: 'Midjourney',    icon: '🎨', category: 'ia',        currency: 'USD', amount: 10.00, day: 22, url: 'https://midjourney.com' },
+  { name: 'Amazon Prime',  icon: '📦', category: 'streaming', currency: 'USD', amount: 8.99,  day: 3,  url: 'https://www.amazon.com' },
+  { name: 'YouTube Premium',icon:'▶️',  category: 'streaming', currency: 'USD', amount: 13.99, day: 20, url: 'https://youtube.com/premium' },
+  { name: 'HBO Max',       icon: '🎭', category: 'streaming', currency: 'USD', amount: 15.99, day: 25, url: 'https://www.hbomax.com' },
+  { name: 'Seguro Salud',  icon: '🏥', category: 'seguro',    currency: 'BS',  amount: 450,   day: 1,  url: '' },
+  { name: 'Seguro Auto',   icon: '🚗', category: 'seguro',    currency: 'BS',  amount: 280,   day: 10, url: '' },
+  { name: 'Internet Hogar',icon: '📡', category: 'servicio',  currency: 'BS',  amount: 180,   day: 5,  url: '' },
+  { name: 'Alquiler',      icon: '🏠', category: 'alquiler',  currency: 'BS',  amount: 2500,  day: 1,  url: '' },
+  { name: 'GitHub Copilot',icon: '👨‍💻', category: 'ia',       currency: 'USD', amount: 10.00, day: 14, url: 'https://github.com/features/copilot' },
+  { name: 'Notion AI',     icon: '📝', category: 'ia',        currency: 'USD', amount: 8.00,  day: 28, url: 'https://notion.so' },
+  { name: 'Canva Pro',     icon: '🖼️', category: 'otro',      currency: 'USD', amount: 12.99, day: 7,  url: 'https://canva.com' },
+  { name: 'Gym / Fitness', icon: '💪', category: 'otro',      currency: 'BS',  amount: 200,   day: 1,  url: '' },
+  { name: 'Préstamo',      icon: '💰', category: 'prestamo',  currency: 'BS',  amount: 800,   day: 15, url: '' },
+];
+
+/* ── IndexedDB ──────────────────────────────────── */
 let db;
-
 function initDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open('BillManagerDB', 1);
-
+  return new Promise((res, rej) => {
+    const req = indexedDB.open('BillManagerDB', 2);
     req.onupgradeneeded = (e) => {
       const d = e.target.result;
-      // Servicios
-      if (!d.objectStoreNames.contains('services')) {
-        const svcStore = d.createObjectStore('services', { keyPath: 'id' });
-        svcStore.createIndex('category', 'category', { unique: false });
-      }
-      // Tarjetas
-      if (!d.objectStoreNames.contains('cards')) {
+      if (!d.objectStoreNames.contains('services'))
+        d.createObjectStore('services', { keyPath: 'id' });
+      if (!d.objectStoreNames.contains('cards'))
         d.createObjectStore('cards', { keyPath: 'id' });
-      }
-      // Config (PIN, WebAuthn credential, etc.)
-      if (!d.objectStoreNames.contains('config')) {
+      if (!d.objectStoreNames.contains('config'))
         d.createObjectStore('config', { keyPath: 'key' });
-      }
+      if (!d.objectStoreNames.contains('payments'))
+        d.createObjectStore('payments', { keyPath: 'id' });
     };
-
-    req.onsuccess = (e) => { db = e.target.result; resolve(); };
-    req.onerror   = () => reject(req.error);
+    req.onsuccess = (e) => { db = e.target.result; res(); };
+    req.onerror   = () => rej(req.error);
   });
 }
+const dbGet = (store, key) => new Promise((res, rej) => {
+  const r = db.transaction(store,'readonly').objectStore(store).get(key);
+  r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+});
+const dbPut = (store, val) => new Promise((res, rej) => {
+  const r = db.transaction(store,'readwrite').objectStore(store).put(val);
+  r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+});
+const dbDelete = (store, key) => new Promise((res, rej) => {
+  const r = db.transaction(store,'readwrite').objectStore(store).delete(key);
+  r.onsuccess = () => res(); r.onerror = () => rej(r.error);
+});
+const dbGetAll = (store) => new Promise((res, rej) => {
+  const r = db.transaction(store,'readonly').objectStore(store).getAll();
+  r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+});
 
-// CRUD genérico
-function dbGet(store, key) {
-  return new Promise((resolve, reject) => {
-    const tx  = db.transaction(store, 'readonly');
-    const req = tx.objectStore(store).get(key);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror   = () => reject(req.error);
-  });
-}
+/* ── Utilidades ──────────────────────────────────── */
+const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
-function dbPut(store, value) {
-  return new Promise((resolve, reject) => {
-    const tx  = db.transaction(store, 'readwrite');
-    const req = tx.objectStore(store).put(value);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror   = () => reject(req.error);
-  });
-}
-
-function dbDelete(store, key) {
-  return new Promise((resolve, reject) => {
-    const tx  = db.transaction(store, 'readwrite');
-    const req = tx.objectStore(store).delete(key);
-    req.onsuccess = () => resolve();
-    req.onerror   = () => reject(req.error);
-  });
-}
-
-function dbGetAll(store) {
-  return new Promise((resolve, reject) => {
-    const tx  = db.transaction(store, 'readonly');
-    const req = tx.objectStore(store).getAll();
-    req.onsuccess = () => resolve(req.result);
-    req.onerror   = () => reject(req.error);
-  });
-}
-
-/* =====================================================
-   UTILIDADES
-   ===================================================== */
-function genId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-}
-
-function formatMoney(amount, currency = 'BS') {
-  const n = parseFloat(amount) || 0;
-  if (currency === 'USD') return `$${n.toFixed(2)}`;
-  return `Bs. ${n.toFixed(2)}`;
-}
-
-// Hash simple para PIN (no criptografía fuerte, pero suficiente para app local)
 async function hashPin(pin) {
   const buf  = new TextEncoder().encode(pin + 'billmanager-salt-2024');
   const hash = await crypto.subtle.digest('SHA-256', buf);
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
+function formatMoney(amount, currency = 'BS') {
+  const n = parseFloat(amount) || 0;
+  return currency === 'USD' ? `$${n.toFixed(2)}` : `Bs. ${n.toFixed(2)}`;
+}
+
 function daysUntil(dayOfMonth) {
-  const today = new Date();
-  const now   = today.getDate();
-  const month = today.getMonth();
-  const year  = today.getFullYear();
-  let target  = new Date(year, month, dayOfMonth);
-  if (dayOfMonth < now) target = new Date(year, month + 1, dayOfMonth);
-  const diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
-  return diff;
+  const today  = new Date();
+  const now    = today.getDate();
+  const target = new Date(today.getFullYear(), today.getMonth() + (dayOfMonth < now ? 1 : 0), dayOfMonth);
+  return Math.ceil((target - today) / 86400000);
 }
 
 function alertLevel(days) {
   if (days < 0)  return 'overdue';
   if (days <= 3) return 'urgent';
+  if (days <= 7) return 'soon';
   return 'ok';
 }
 
-function categoryLabel(cat) {
-  const map = {
-    streaming: '📺 Streaming',
-    ia:        '🤖 Herramientas IA',
-    seguro:    '🛡️ Seguro',
-    prestamo:  '💰 Préstamo',
-    alquiler:  '🏠 Alquiler',
-    servicio:  '⚡ Servicio básico',
-    otro:      '📦 Otro'
-  };
-  return map[cat] || cat;
-}
+const CATEGORY_LABELS = {
+  streaming: '📺 Streaming', ia: '🤖 IA', seguro: '🛡️ Seguro',
+  prestamo: '💰 Préstamo', alquiler: '🏠 Alquiler',
+  servicio: '⚡ Servicio', otro: '📦 Otro'
+};
+const categoryLabel = (c) => CATEGORY_LABELS[c] || c;
 
-/* =====================================================
-   TOAST
-   ===================================================== */
+/* ── Toast ───────────────────────────────────────── */
 let toastTimer;
 function showToast(msg, type = 'success') {
-  const el  = document.getElementById('toast');
-  const ico = document.getElementById('toast-icon');
-  const txt = document.getElementById('toast-msg');
-  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
-  ico.textContent = icons[type] || 'ℹ️';
-  txt.textContent = msg;
+  const el = document.getElementById('toast');
+  document.getElementById('toast-icon').textContent = { success:'✅', error:'❌', info:'ℹ️', pay:'💳' }[type] || 'ℹ️';
+  document.getElementById('toast-msg').textContent = msg;
   el.className = `show ${type}`;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.className = ''; }, 3000);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3500);
 }
 
-/* =====================================================
-   PANTALLAS
-   ===================================================== */
+/* ── Pantallas ───────────────────────────────────── */
 function showScreen(id) {
-  ['screen-auth','screen-setup','screen-main'].forEach(s => {
-    document.getElementById(s).classList.add('hidden');
-  });
+  ['screen-auth','screen-setup','screen-main'].forEach(s =>
+    document.getElementById(s).classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
 }
 
-/* =====================================================
-   AUTENTICACIÓN — WebAuthn
-   ===================================================== */
-
-// Verifica si WebAuthn está disponible
+/* ══════════════════════════════════════════════════
+   AUTENTICACIÓN
+   ══════════════════════════════════════════════════ */
 function webAuthnAvailable() {
-  return !!(window.PublicKeyCredential &&
-            navigator.credentials &&
-            navigator.credentials.create);
+  return !!(window.PublicKeyCredential && navigator.credentials?.create);
 }
 
-// Registrar credencial biométrica (primer uso)
 async function registerBiometric() {
   if (!webAuthnAvailable()) return false;
-
   try {
-    const challenge = crypto.getRandomValues(new Uint8Array(32));
-
-    const credential = await navigator.credentials.create({
-      publicKey: {
-        challenge,
-        rp: { name: 'BillManager', id: location.hostname || 'localhost' },
-        user: {
-          id: new TextEncoder().encode('billmanager-user'),
-          name: 'usuario@billmanager',
-          displayName: 'Marco Antonio'
-        },
-        pubKeyCredParams: [
-          { type: 'public-key', alg: -7  },  // ES256
-          { type: 'public-key', alg: -257 }  // RS256
-        ],
-        authenticatorSelection: {
-          authenticatorAttachment: 'platform',   // huella del dispositivo
-          userVerification: 'required',
-          requireResidentKey: false
-        },
-        timeout: 60000
-      }
-    });
-
-    // Guardar ID de credencial en IndexedDB
-    await dbPut('config', {
-      key: 'webauthn_credential_id',
-      value: Array.from(new Uint8Array(credential.rawId))
-    });
-
+    const cred = await navigator.credentials.create({ publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      rp: { name: 'BillManager', id: location.hostname || 'localhost' },
+      user: { id: new TextEncoder().encode('billmanager-user'), name: 'usuario@billmanager', displayName: 'Marco Antonio' },
+      pubKeyCredParams: [{ type:'public-key', alg:-7 }, { type:'public-key', alg:-257 }],
+      authenticatorSelection: { authenticatorAttachment:'platform', userVerification:'required' },
+      timeout: 60000
+    }});
+    await dbPut('config', { key:'webauthn_credential_id', value: Array.from(new Uint8Array(cred.rawId)) });
     return true;
-  } catch (err) {
-    console.warn('WebAuthn register error:', err);
-    return false;
-  }
+  } catch(e) { console.warn('WebAuthn register:', e); return false; }
 }
 
-// Autenticar con biometría
 async function doBioAuth() {
-  const bioBtn = document.getElementById('bio-btn');
-  const status = document.getElementById('auth-status');
-
-  if (!webAuthnAvailable()) {
-    if (status) {
-      status.textContent = '⚠️ Biometría no disponible en este dispositivo';
-      status.className = 'auth-status error';
-    }
-    return;
-  }
-
-  // Vibración táctil
+  const btn = document.getElementById('bio-btn');
+  const st  = document.getElementById('auth-status');
+  if (!webAuthnAvailable()) { if(st){st.textContent='⚠️ Biometría no disponible';st.className='auth-status error';} return; }
   if (navigator.vibrate) navigator.vibrate(50);
-
-  // Animación visual
-  bioBtn.style.boxShadow = '0 0 0 4px rgba(56,189,248,0.3), 0 8px 32px rgba(0,0,0,0.5)';
-
+  btn.style.boxShadow = '0 0 0 4px rgba(56,189,248,0.3),0 8px 32px rgba(0,0,0,0.5)';
   try {
     const credData = await dbGet('config', 'webauthn_credential_id');
-    const challenge = crypto.getRandomValues(new Uint8Array(32));
-
-    const assertionOptions = {
-      publicKey: {
-        challenge,
-        timeout: 60000,
-        userVerification: 'required',
-        rpId: location.hostname || 'localhost'
-      }
-    };
-
-    // Si tenemos credential ID guardado, lo usamos como allowCredentials
-    if (credData && credData.value) {
-      assertionOptions.publicKey.allowCredentials = [{
-        type: 'public-key',
-        id: new Uint8Array(credData.value),
-        transports: ['internal']
-      }];
-    }
-
-    const assertion = await navigator.credentials.get(assertionOptions);
-
+    const opts = { publicKey: { challenge: crypto.getRandomValues(new Uint8Array(32)), timeout: 60000, userVerification:'required', rpId: location.hostname || 'localhost' }};
+    if (credData?.value) opts.publicKey.allowCredentials = [{ type:'public-key', id: new Uint8Array(credData.value), transports:['internal'] }];
+    const assertion = await navigator.credentials.get(opts);
     if (assertion) {
-      bioBtn.style.boxShadow = '0 0 0 4px rgba(52,211,153,0.3), 0 8px 32px rgba(0,0,0,0.5)';
-      if (status) { status.textContent = '✅ Autenticado'; status.className = 'auth-status success'; }
-      if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-      setTimeout(() => enterApp(), 400);
+      btn.style.boxShadow = '0 0 0 4px rgba(52,211,153,0.3),0 8px 32px rgba(0,0,0,0.5)';
+      if (st) { st.textContent='✅ Autenticado'; st.className='auth-status success'; }
+      if (navigator.vibrate) navigator.vibrate([50,30,50]);
+      setTimeout(enterApp, 400);
     }
-  } catch (err) {
-    bioBtn.style.boxShadow = '0 0 0 4px rgba(248,113,113,0.3), 0 8px 32px rgba(0,0,0,0.5)';
-    if (status) { status.textContent = '❌ Autenticación fallida. Usa el PIN.'; status.className = 'auth-status error'; }
-    setTimeout(() => {
-      bioBtn.style.boxShadow = '';
-      if (status) { status.textContent = ''; status.className = 'auth-status'; }
-    }, 2000);
-    console.warn('WebAuthn auth error:', err);
+  } catch(e) {
+    btn.style.boxShadow = '0 0 0 4px rgba(248,113,113,0.3),0 8px 32px rgba(0,0,0,0.5)';
+    if (st) { st.textContent='❌ Fallida. Usa el PIN.'; st.className='auth-status error'; }
+    setTimeout(() => { btn.style.boxShadow=''; if(st){st.textContent='';st.className='auth-status';} }, 2000);
   }
 }
 
-/* =====================================================
-   PIN — Setup (primer uso)
-   ===================================================== */
+/* ── Setup PIN ──────────────────────────────────── */
 function setupPin(key) {
   if (navigator.vibrate) navigator.vibrate(30);
-
-  if (key === 'del') {
-    App.setupPinEntry = App.setupPinEntry.slice(0, -1);
-  } else if (key === 'bio') {
-    // Nada aquí en setup, por ahora
-    return;
-  } else {
-    if (App.setupPinEntry.length >= 6) return;
-    App.setupPinEntry += key;
-  }
-
+  if (key === 'del') App.setupPinEntry = App.setupPinEntry.slice(0,-1);
+  else if (App.setupPinEntry.length < 6) App.setupPinEntry += key;
   updateSetupDots();
-
-  if (App.setupPinEntry.length === 6) {
-    setTimeout(() => processSetupPin(), 200);
-  }
+  if (App.setupPinEntry.length === 6) setTimeout(processSetupPin, 200);
 }
-
 function updateSetupDots() {
-  const dots = document.querySelectorAll('#setup-dots .pin-dot');
-  dots.forEach((d, i) => {
-    d.classList.toggle('filled', i < App.setupPinEntry.length);
-  });
+  document.querySelectorAll('#setup-dots .pin-dot').forEach((d,i) =>
+    d.classList.toggle('filled', i < App.setupPinEntry.length));
 }
-
 async function processSetupPin() {
   if (App.setupStep === 'first') {
     App.setupPinFirst = App.setupPinEntry;
@@ -1501,390 +981,471 @@ async function processSetupPin() {
     App.setupStep = 'second';
     document.getElementById('setup-subtitle').textContent = 'Confirma tu PIN';
     updateSetupDots();
-    document.getElementById('setup-status').textContent = '';
   } else {
-    // Confirmar PIN
     if (App.setupPinEntry === App.setupPinFirst) {
-      const hash = await hashPin(App.setupPinEntry);
-      await dbPut('config', { key: 'pin_hash', value: hash });
-
-      // Intentar registrar biometría
-      const status = document.getElementById('setup-status');
-      status.textContent = '🔏 Configurando biometría...';
-      status.className = 'auth-status';
-
+      await dbPut('config', { key:'pin_hash', value: await hashPin(App.setupPinEntry) });
+      const st = document.getElementById('setup-status');
+      st.textContent = '🔏 Configurando biometría...';
       const bioOk = await registerBiometric();
-      if (bioOk) {
-        await dbPut('config', { key: 'biometric_enabled', value: true });
-        status.textContent = '✅ Biometría configurada';
-      } else {
-        status.textContent = '⚠️ Biometría no disponible. Solo PIN.';
-      }
-
-      await dbPut('config', { key: 'setup_complete', value: true });
-
-      setTimeout(() => enterApp(), 800);
+      if (bioOk) { await dbPut('config', { key:'biometric_enabled', value:true }); st.textContent='✅ Biometría lista'; }
+      else { st.textContent='⚠️ Solo PIN disponible'; }
+      await dbPut('config', { key:'setup_complete', value:true });
+      setTimeout(enterApp, 800);
     } else {
-      // PINs no coinciden
-      App.setupPinFirst = '';
-      App.setupPinEntry = '';
-      App.setupStep = 'first';
+      App.setupPinFirst=''; App.setupPinEntry=''; App.setupStep='first';
       updateSetupDots();
       document.getElementById('setup-subtitle').textContent = 'Ingresa tu PIN';
       const st = document.getElementById('setup-status');
-      st.textContent = '❌ Los PINs no coinciden. Intenta de nuevo.';
-      st.className = 'auth-status error';
-      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+      st.textContent='❌ PINs no coinciden'; st.className='auth-status error';
+      if (navigator.vibrate) navigator.vibrate([100,50,100]);
     }
   }
 }
 
-/* =====================================================
-   PIN — Autenticación
-   ===================================================== */
+/* ── Auth PIN ───────────────────────────────────── */
 function authPin(key) {
   if (navigator.vibrate) navigator.vibrate(30);
-  const status = document.getElementById('auth-status');
-
-  if (key === 'del') {
-    App.authPinEntry = App.authPinEntry.slice(0, -1);
-  } else {
-    if (App.authPinEntry.length >= 6) return;
-    App.authPinEntry += key;
-  }
-
-  updateAuthDots();
-
-  if (App.authPinEntry.length === 6) {
-    setTimeout(() => verifyPin(), 200);
-  }
+  if (key === 'del') App.authPinEntry = App.authPinEntry.slice(0,-1);
+  else if (App.authPinEntry.length < 6) App.authPinEntry += key;
+  document.querySelectorAll('#auth-dots .pin-dot').forEach((d,i) =>
+    d.classList.toggle('filled', i < App.authPinEntry.length));
+  if (App.authPinEntry.length === 6) setTimeout(verifyPin, 200);
 }
-
-function updateAuthDots() {
-  const dots = document.querySelectorAll('#auth-dots .pin-dot');
-  dots.forEach((d, i) => {
-    d.classList.toggle('filled', i < App.authPinEntry.length);
-  });
-}
-
 async function verifyPin() {
-  const status = document.getElementById('auth-status');
+  const st = document.getElementById('auth-status');
   try {
-    const stored = await dbGet('config', 'pin_hash');
-    if (!stored) { enterApp(); return; } // Dev mode sin PIN
-
+    const stored = await dbGet('config','pin_hash');
+    if (!stored) { enterApp(); return; }
     const hash = await hashPin(App.authPinEntry);
     if (hash === stored.value) {
-      status.textContent = '✅ PIN correcto';
-      status.className = 'auth-status success';
-      if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-      setTimeout(() => enterApp(), 400);
+      if(st){st.textContent='✅ Correcto';st.className='auth-status success';}
+      if (navigator.vibrate) navigator.vibrate([50,30,50]);
+      setTimeout(enterApp, 400);
     } else {
       App.authPinEntry = '';
-      updateAuthDots();
-      status.textContent = '❌ PIN incorrecto';
-      status.className = 'auth-status error';
-      if (navigator.vibrate) navigator.vibrate([200, 50, 200]);
-      setTimeout(() => {
-        status.textContent = '';
-        status.className = 'auth-status';
-      }, 2000);
+      document.querySelectorAll('#auth-dots .pin-dot').forEach(d=>d.classList.remove('filled'));
+      if(st){st.textContent='❌ PIN incorrecto';st.className='auth-status error';}
+      if (navigator.vibrate) navigator.vibrate([200,50,200]);
+      setTimeout(()=>{if(st){st.textContent='';st.className='auth-status';}},2000);
     }
-  } catch (e) {
-    console.error('PIN verify error:', e);
-    enterApp(); // Fallback para desarrollo
-  }
+  } catch(e) { enterApp(); }
 }
 
-/* =====================================================
-   ENTRAR A LA APP
-   ===================================================== */
+/* ── Entrar a la app ────────────────────────────── */
 async function enterApp() {
   App.isAuthenticated = true;
   App.authPinEntry = '';
   showScreen('screen-main');
   await renderAll();
+  await renderNotifTab();
+  checkUrlParams();
+
+  // Escuchar mensajes del service worker
+  navigator.serviceWorker?.addEventListener('message', (e) => {
+    if (e.data?.type === 'NOTIFICATION_CLICK' && e.data.serviceId) {
+      openDetail(e.data.serviceId);
+    }
+    if (e.data?.type === 'CHECK_DUE_SERVICES') {
+      scheduleLocalNotifications();
+    }
+  });
 }
 
 function doLock() {
   App.isAuthenticated = false;
   App.authPinEntry = '';
-  updateAuthDots();
+  document.querySelectorAll('#auth-dots .pin-dot').forEach(d=>d.classList.remove('filled'));
   document.getElementById('auth-status').textContent = '';
   showScreen('screen-auth');
 }
 
-/* =====================================================
-   TABS
-   ===================================================== */
-function switchTab(tab) {
-  App.currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.tab === tab);
-  });
-  document.querySelectorAll('.tab-panel').forEach(p => {
-    p.classList.toggle('active', p.id === `tab-${tab}`);
-  });
-
-  // Cambiar FAB según tab
-  const fab = document.getElementById('fab-btn');
-  if (tab === 'cards') {
-    fab.textContent = '+';
-    fab.onclick = openAddCardModal;
-  } else {
-    fab.textContent = '+';
-    fab.onclick = openAddModal;
-  }
-
-  if (tab === 'alerts') renderAlerts();
+// Abrir servicio desde URL param
+function checkUrlParams() {
+  const params = new URLSearchParams(location.search);
+  const openId = params.get('open');
+  if (openId) { setTimeout(()=>openDetail(openId), 500); history.replaceState({},'',''); }
 }
 
-/* =====================================================
+/* ══════════════════════════════════════════════════
+   TABS
+   ══════════════════════════════════════════════════ */
+function switchTab(tab) {
+  App.currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `tab-${tab}`));
+  const fab = document.getElementById('fab-btn');
+  fab.onclick = tab === 'cards' ? openAddCardModal : openAddModal;
+  if (tab === 'alerts') renderAlerts();
+  if (tab === 'notif')  renderNotifTab();
+}
+
+/* ══════════════════════════════════════════════════
    RENDER — Servicios
-   ===================================================== */
+   ══════════════════════════════════════════════════ */
 async function renderServices() {
   const services = await dbGetAll('services');
   const cards    = await dbGetAll('cards');
   const list     = document.getElementById('services-list');
-  const countEl  = document.getElementById('services-count-label');
 
-  const active   = services.filter(s => s.active !== false);
-  countEl.textContent = active.length;
+  const active = services.filter(s => s.active !== false);
+  document.getElementById('services-count-label').textContent = active.length;
 
-  // Resumen
-  let total = 0;
-  let ok = 0, urgent = 0, overdue = 0;
-
+  let total = 0, ok = 0, urgent = 0, overdue = 0;
   active.forEach(s => {
-    const amount = parseFloat(s.amount) || 0;
-    const days   = daysUntil(s.day);
-    const level  = alertLevel(days);
-    // Conversión simple a Bs. (si es USD, usamos tipo de cambio referencial 6.96)
-    if (s.currency === 'USD') total += amount * 6.96;
-    else total += amount;
-    if (level === 'ok')      ok++;
-    if (level === 'urgent')  urgent++;
-    if (level === 'overdue') overdue++;
+    const a = parseFloat(s.amount) || 0;
+    total += s.currency === 'USD' ? a * 6.96 : a;
+    const lvl = alertLevel(daysUntil(s.day));
+    if (lvl === 'ok' || lvl === 'soon') ok++;
+    else if (lvl === 'urgent') urgent++;
+    else if (lvl === 'overdue') overdue++;
   });
 
-  document.getElementById('total-monthly').textContent = total.toFixed(2);
+  document.getElementById('total-monthly').textContent    = total.toFixed(2);
   document.getElementById('total-services-count').textContent =
-    `${active.length} servicio${active.length !== 1 ? 's' : ''} activo${active.length !== 1 ? 's' : ''}`;
+    `${active.length} servicio${active.length!==1?'s':''} activo${active.length!==1?'s':''}`;
   document.getElementById('count-ok').textContent      = ok;
   document.getElementById('count-urgent').textContent  = urgent;
   document.getElementById('count-overdue').textContent = overdue;
 
-  // Lista
+  // Badge campana
+  const hasPending = urgent > 0 || overdue > 0;
+  document.getElementById('notif-badge').classList.toggle('hidden', !hasPending);
+
   if (services.length === 0) {
-    list.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">📋</div>
-        <h3>Sin servicios</h3>
-        <p>Toca el botón <strong>+</strong> para agregar tu primer servicio recurrente</p>
-      </div>`;
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div>
+      <h3>Sin servicios</h3><p>Toca <strong>+</strong> para agregar desde el catálogo o manualmente</p></div>`;
     return;
   }
 
-  // Ordenar: vencidos primero, luego urgentes, luego por día
-  services.sort((a, b) => daysUntil(a.day) - daysUntil(b.day));
-
   const cardMap = {};
   cards.forEach(c => { cardMap[c.id] = c; });
+  services.sort((a,b) => daysUntil(a.day) - daysUntil(b.day));
 
   list.innerHTML = services.map(s => {
-    const days  = daysUntil(s.day);
-    const level = alertLevel(days);
-    const card  = s.cardId ? cardMap[s.cardId] : null;
-    const isInactive = s.active === false;
+    const days = daysUntil(s.day);
+    const lvl  = alertLevel(days);
+    const card = s.cardId ? cardMap[s.cardId] : null;
+    const inactive = s.active === false;
+    const dueText = days < 0 ? `Venció hace ${Math.abs(days)}d`
+      : days === 0 ? '¡Vence HOY!'
+      : days <= 7  ? `Vence en ${days} día${days!==1?'s':''}`
+      : `Día ${s.day} de cada mes`;
 
-    const dueText = days < 0
-      ? `Venció hace ${Math.abs(days)} día${Math.abs(days) !== 1 ? 's' : ''}`
-      : days === 0
-        ? '¡Vence hoy!'
-        : `Vence en ${days} día${days !== 1 ? 's' : ''}`;
+    const badge = (lvl==='urgent'||lvl==='overdue') && !inactive
+      ? '<div class="alert-badge"></div>' : '';
 
-    const alertBadge = (level === 'urgent' || level === 'overdue') && !isInactive
-      ? '<div class="alert-badge"></div>'
-      : '';
-
-    return `
-      <div class="service-card cat-${s.category} animate-in ${isInactive ? 'opacity-40' : ''}"
-           onclick="openDetail('${s.id}')" style="${isInactive ? 'opacity:0.45' : ''}">
-        ${alertBadge}
-        <div class="service-icon">${s.icon || '📋'}</div>
-        <div class="service-info">
-          <div class="service-name">${s.name}</div>
-          <div class="service-meta">
-            <span class="status-dot ${isInactive ? 'inactive' : 'active'}"></span>
-            ${categoryLabel(s.category).split(' ')[1] || categoryLabel(s.category)}
-            ${card ? `<span class="service-card-tag">••${card.digits}</span>` : ''}
-          </div>
+    return `<div class="service-card cat-${s.category} animate-in"
+         onclick="openDetail('${s.id}')" style="${inactive?'opacity:0.45':''}">
+      ${badge}
+      <div class="service-icon">${s.icon||'📋'}</div>
+      <div class="service-info">
+        <div class="service-name">${s.name}</div>
+        <div class="service-meta">
+          <span class="status-dot ${inactive?'inactive':'active'}"></span>
+          ${categoryLabel(s.category).split(' ')[1]||''}
+          ${card?`<span class="service-card-tag">••${card.digits}</span>`:''}
         </div>
-        <div class="service-right">
-          <div class="service-amount">${formatMoney(s.amount, s.currency)}</div>
-          <div class="service-due ${isInactive ? '' : level}">${isInactive ? 'Inactivo' : dueText}</div>
-        </div>
-      </div>`;
+      </div>
+      <div class="service-right">
+        <div class="service-amount">${formatMoney(s.amount,s.currency)}</div>
+        <div class="service-due ${inactive?'':lvl==='soon'?'':lvl}">${inactive?'Inactivo':dueText}</div>
+      </div>
+    </div>`;
   }).join('');
 }
 
-/* =====================================================
-   RENDER — Tarjetas
-   ===================================================== */
+/* ── Render Tarjetas ────────────────────────────── */
 async function renderCards() {
   const cards    = await dbGetAll('cards');
   const services = await dbGetAll('services');
   const list     = document.getElementById('cards-list');
-  const countEl  = document.getElementById('cards-count-label');
-
-  countEl.textContent = cards.length;
+  document.getElementById('cards-count-label').textContent = cards.length;
 
   if (cards.length === 0) {
-    list.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">💳</div>
-        <h3>Sin tarjetas</h3>
-        <p>Agrega tus tarjetas para asociarlas a cada servicio. No guardamos datos sensibles.</p>
-      </div>`;
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">💳</div>
+      <h3>Sin tarjetas</h3><p>Agrega tus tarjetas para asociarlas a cada servicio</p></div>`;
     return;
   }
-
-  const networkIcons = { Visa: '💙', Mastercard: '🔴', Amex: '🟡', Otra: '⬜' };
-
+  const netIcons = { Visa:'💙', Mastercard:'🔴', Amex:'🟡', Otra:'⬜' };
   list.innerHTML = cards.map(c => {
-    const svcCount = services.filter(s => s.cardId === c.id).length;
-    return `
-      <div class="card-item animate-in" style="background: linear-gradient(135deg, ${c.color}cc, ${c.color}88);"
-           onclick="showToast('Tarjeta: ${c.alias} •••• ${c.digits}','info')">
-        <div class="card-top">
-          <span class="card-network">${networkIcons[c.type] || '💳'}</span>
-          <span class="card-type-badge">${c.type}</span>
+    const count = services.filter(s=>s.cardId===c.id).length;
+    return `<div class="card-item animate-in"
+         style="background:linear-gradient(135deg,${c.color}ee,${c.color}99)"
+         onclick="openCardDetail('${c.id}')">
+      <div class="card-top">
+        <span class="card-network">${netIcons[c.type]||'💳'}</span>
+        <span class="card-type-badge">${c.type}</span>
+      </div>
+      <div class="card-number">•••• •••• •••• ${c.digits}</div>
+      <div class="card-bottom">
+        <div><div class="card-alias">${c.alias}</div>
+          <div class="card-services-count">${count} servicio${count!==1?'s':''} asociado${count!==1?'s':''}</div>
         </div>
-        <div class="card-number">•••• •••• •••• ${c.digits}</div>
-        <div class="card-bottom">
-          <div>
-            <div class="card-alias">${c.alias}</div>
-            <div class="card-services-count">${svcCount} servicio${svcCount !== 1 ? 's' : ''} asociado${svcCount !== 1 ? 's' : ''}</div>
-          </div>
-          <div style="font-size:12px;color:var(--text-muted)">${c.bank || ''}</div>
-        </div>
-      </div>`;
+        <div style="font-size:12px;color:rgba(255,255,255,0.4)">${c.bank||''}</div>
+      </div>
+    </div>`;
   }).join('');
 }
 
-/* =====================================================
-   RENDER — Alertas
-   ===================================================== */
+/* ── Render Alertas ─────────────────────────────── */
 async function renderAlerts() {
   const services = await dbGetAll('services');
   const list     = document.getElementById('alerts-list');
-
-  const active = services
-    .filter(s => s.active !== false)
-    .sort((a, b) => daysUntil(a.day) - daysUntil(b.day))
-    .slice(0, 15);
-
-  if (active.length === 0) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">⏰</div><h3>Sin alertas</h3><p>Agrega servicios para ver sus vencimientos aquí</p></div>`;
+  const active   = services.filter(s=>s.active!==false)
+                           .sort((a,b)=>daysUntil(a.day)-daysUntil(b.day));
+  if (!active.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">⏰</div>
+      <h3>Sin alertas</h3><p>Agrega servicios para ver vencimientos</p></div>`;
     return;
   }
-
   list.innerHTML = active.map(s => {
     const days  = daysUntil(s.day);
-    const level = alertLevel(days);
-    const daysText = days < 0
-      ? `${Math.abs(days)}d`
-      : days === 0 ? 'HOY' : `${days}d`;
-    const dateStr = `Día ${s.day} de cada mes`;
-    return `
-      <div class="alert-item animate-in">
-        <div class="alert-icon-wrap ${level}">${s.icon || '📋'}</div>
-        <div class="alert-info">
-          <div class="alert-name">${s.name}</div>
-          <div class="alert-date">${dateStr} · ${formatMoney(s.amount, s.currency)}</div>
-        </div>
-        <div>
-          <div class="alert-days ${level}">${daysText}</div>
-          <div class="alert-days-label">${days < 0 ? 'vencido' : days === 0 ? '¡hoy!' : 'restantes'}</div>
-        </div>
-      </div>`;
+    const lvl   = alertLevel(days);
+    const daysT = days < 0 ? `${Math.abs(days)}d` : days === 0 ? 'HOY' : `${days}d`;
+    return `<div class="alert-item ${lvl} animate-in">
+      <div class="alert-icon-wrap ${lvl}">${s.icon||'📋'}</div>
+      <div class="alert-info">
+        <div class="alert-name">${s.name}</div>
+        <div class="alert-date">Día ${s.day} · ${formatMoney(s.amount,s.currency)}</div>
+      </div>
+      <div>
+        <div class="alert-days ${lvl}">${daysT}</div>
+        <div class="alert-days-label">${days<0?'vencido':days===0?'¡hoy!':'restantes'}</div>
+      </div>
+    </div>`;
   }).join('');
+}
+
+/* ── Render Notificaciones ──────────────────────── */
+async function renderNotifTab() {
+  const perm    = Notification.permission;
+  const wrap    = document.getElementById('notif-status-wrap');
+
+  let cardHTML = '';
+  if (perm === 'granted') {
+    cardHTML = `<div class="notif-status-card active">
+      <div class="notif-icon">🔔</div>
+      <div class="notif-info">
+        <h3>Notificaciones activas</h3>
+        <p>Recibirás alertas en D-7, D-3 y el día del vencimiento de cada servicio.</p>
+      </div>
+    </div>`;
+  } else if (perm === 'denied') {
+    cardHTML = `<div class="notif-status-card off">
+      <div class="notif-icon">🔕</div>
+      <div class="notif-info">
+        <h3>Notificaciones bloqueadas</h3>
+        <p>Ve a Ajustes del sistema → Aplicaciones → Chrome → Notificaciones para activarlas.</p>
+      </div>
+    </div>`;
+  } else {
+    cardHTML = `<div class="notif-status-card pending">
+      <div class="notif-icon">🔔</div>
+      <div class="notif-info">
+        <h3>Activa las notificaciones</h3>
+        <p>Para recibir alertas de vencimiento directamente en tu teléfono.</p>
+        <button class="btn btn-primary" style="margin-top:14px;padding:12px" onclick="requestNotifPermission()">
+          Activar notificaciones
+        </button>
+      </div>
+    </div>`;
+  }
+  wrap.innerHTML = cardHTML;
+
+  // Cargar prefs
+  const prefs = await dbGet('config','notif_prefs');
+  if (prefs?.value) App.notifPrefs = prefs.value;
+  document.getElementById('toggle-7d').classList.toggle('on', App.notifPrefs.d7);
+  document.getElementById('toggle-3d').classList.toggle('on', App.notifPrefs.d3);
+  document.getElementById('toggle-0d').classList.toggle('on', App.notifPrefs.d0);
+
+  // Calendario de próximas notificaciones
+  await renderNotifSchedule();
+}
+
+async function renderNotifSchedule() {
+  const services = await dbGetAll('services');
+  const list     = document.getElementById('notif-schedule-list');
+  const prefs    = App.notifPrefs;
+
+  const upcoming = [];
+  services.filter(s=>s.active!==false).forEach(s => {
+    const days = daysUntil(s.day);
+    if (prefs.d7 && days > 0 && days <= 7)  upcoming.push({ s, days, type:'7d', label:`en ${days} día${days!==1?'s':''}` });
+    if (prefs.d3 && days > 0 && days <= 3)  upcoming.push({ s, days, type:'3d', label:`en ${days} día${days!==1?'s':''}` });
+    if (prefs.d0 && days === 0)             upcoming.push({ s, days, type:'0d', label:'¡HOY!' });
+    if (days < 0)                            upcoming.push({ s, days, type:'overdue', label:`${Math.abs(days)}d vencido` });
+  });
+
+  upcoming.sort((a,b)=>a.days-b.days);
+
+  if (!upcoming.length) {
+    list.innerHTML = `<div class="notif-schedule-row"><span class="notif-schedule-label" style="color:var(--text-muted)">
+      ✅ Sin vencimientos en los próximos 7 días</span></div>`;
+    return;
+  }
+  list.innerHTML = upcoming.map(u => {
+    const color = u.days < 0 ? 'var(--accent-red)' : u.days <= 3 ? 'var(--accent-amber)' : 'var(--text-secondary)';
+    return `<div class="notif-schedule-row">
+      <span class="notif-schedule-label">${u.s.icon} ${u.s.name}</span>
+      <span class="notif-schedule-val" style="color:${color}">${u.label}</span>
+    </div>`;
+  }).join('');
+}
+
+async function toggleNotifPref(key, el) {
+  App.notifPrefs[key] = !App.notifPrefs[key];
+  el.classList.toggle('on', App.notifPrefs[key]);
+  await dbPut('config', { key:'notif_prefs', value: App.notifPrefs });
+  await renderNotifSchedule();
+  showToast(`Alerta ${key === '7d' ? 'D-7' : key === '3d' ? 'D-3' : 'D-0'} ${App.notifPrefs[key] ? 'activada' : 'desactivada'}`, 'info');
+}
+
+/* ── Solicitar permiso de notificaciones ─────────── */
+async function requestNotifPermission() {
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    showToast('🔔 Notificaciones activadas', 'success');
+    await scheduleLocalNotifications();
+  } else {
+    showToast('❌ Permiso denegado', 'error');
+  }
+  await renderNotifTab();
+}
+
+/* ── Notificaciones locales programadas ─────────── */
+async function scheduleLocalNotifications() {
+  if (Notification.permission !== 'granted') return;
+  const services = await dbGetAll('services');
+  const prefs    = App.notifPrefs;
+  const sw       = await navigator.serviceWorker?.getRegistration();
+  if (!sw) return;
+
+  let sent = 0;
+  services.filter(s=>s.active!==false).forEach(s => {
+    const days = daysUntil(s.day);
+    const send = (title, body) => {
+      // En una app real usaríamos push server. Aquí simulamos con Notification API directa
+      // (funciona cuando la app está abierta)
+      if (document.hidden) return; // Solo cuando la app está visible
+      new Notification(title, {
+        body, icon: '/icon-192.png',
+        tag: `bm-${s.id}`,
+        data: { serviceId: s.id }
+      });
+      sent++;
+    };
+
+    if (days < 0)
+      send(`⚠️ ${s.name} venció`, `Hace ${Math.abs(days)} día${Math.abs(days)!==1?'s':''}. ${formatMoney(s.amount,s.currency)}`);
+    else if (days === 0 && prefs.d0)
+      send(`🔴 ${s.name} vence HOY`, `Monto: ${formatMoney(s.amount,s.currency)}`);
+    else if (days <= 3 && prefs.d3)
+      send(`🟠 ${s.name} vence en ${days}d`, `Monto: ${formatMoney(s.amount,s.currency)}`);
+    else if (days <= 7 && prefs.d7)
+      send(`🟡 ${s.name} vence en ${days}d`, `Monto: ${formatMoney(s.amount,s.currency)}`);
+  });
+
+  if (sent === 0 && services.length > 0) showToast('✅ Todo al día, sin alertas urgentes','info');
+}
+
+/* ── Notificación de prueba ─────────────────────── */
+async function sendTestNotification() {
+  if (Notification.permission !== 'granted') {
+    await requestNotifPermission();
+    return;
+  }
+  const today = new Date();
+  new Notification('🔔 BillManager — Prueba', {
+    body: `¡Notificaciones funcionando! Son las ${today.toLocaleTimeString('es-BO')}.`,
+    icon: '/icon-192.png',
+    tag: 'bm-test',
+    vibrate: [200,100,200]
+  });
+  showToast('🔔 Notificación enviada','success');
 }
 
 async function renderAll() {
   await renderServices();
   await renderCards();
-  await renderAlerts();
 }
 
-/* =====================================================
-   MODAL — Agregar / Editar Servicio
-   ===================================================== */
-const EMOJIS = ['📺','🎵','🎮','📚','🤖','🛡️','💰','🏠','⚡','💧','📦','🌐','📱','💻','🎬','🎧','🏋️','🚗','✈️','🍕','☕','🔔','📧','☁️'];
-const CARD_COLORS = ['#1a2740','#1a2020','#201a2a','#1a2018','#2a1a1a','#1e1a10'];
-
+/* ══════════════════════════════════════════════════
+   MODAL — Catálogo rápido
+   ══════════════════════════════════════════════════ */
 function openAddModal() {
+  renderSeedGrid();
+  openModal('modal-quick-add');
+}
+
+function renderSeedGrid() {
+  const grid = document.getElementById('seed-grid');
+  grid.innerHTML = SERVICE_CATALOG.map((s, i) =>
+    `<div class="seed-item" onclick="selectSeed(${i})">
+      <div class="seed-icon">${s.icon}</div>
+      <div class="seed-name">${s.name}</div>
+    </div>`
+  ).join('');
+}
+
+function selectSeed(i) {
+  const s = SERVICE_CATALOG[i];
+  App.selectedEmoji = s.icon;
+  closeModal('modal-quick-add');
+  // Pre-rellenar el formulario
   App.editingServiceId = null;
-  App.selectedEmoji    = '📋';
   document.getElementById('modal-service-title').textContent = 'Nuevo servicio';
   document.getElementById('btn-delete-svc').classList.add('hidden');
-
-  // Reset form
-  ['svc-name','svc-amount','svc-day','svc-url'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-  document.getElementById('svc-category').value = 'streaming';
-  document.getElementById('svc-currency').value  = 'BS';
-
+  document.getElementById('svc-name').value     = s.name;
+  document.getElementById('svc-amount').value   = s.amount;
+  document.getElementById('svc-day').value      = s.day;
+  document.getElementById('svc-url').value      = s.url;
+  document.getElementById('svc-category').value = s.category;
+  document.getElementById('svc-currency').value = s.currency;
   renderEmojiPicker();
   populateCardSelect();
   openModal('modal-service');
 }
 
-async function editCurrentService() {
-  closeModal('modal-detail');
-  const s = await dbGet('services', App.currentServiceId);
-  if (!s) return;
-
-  App.editingServiceId = s.id;
-  App.selectedEmoji    = s.icon || '📋';
-
-  document.getElementById('modal-service-title').textContent = 'Editar servicio';
-  document.getElementById('btn-delete-svc').classList.remove('hidden');
-  document.getElementById('svc-name').value     = s.name;
-  document.getElementById('svc-amount').value   = s.amount;
-  document.getElementById('svc-day').value      = s.day;
-  document.getElementById('svc-url').value      = s.url || '';
-  document.getElementById('svc-category').value = s.category;
-  document.getElementById('svc-currency').value = s.currency || 'BS';
-
+function openManualAdd() {
+  closeModal('modal-quick-add');
+  App.editingServiceId = null;
+  App.selectedEmoji = '📋';
+  document.getElementById('modal-service-title').textContent = 'Nuevo servicio';
+  document.getElementById('btn-delete-svc').classList.add('hidden');
+  ['svc-name','svc-amount','svc-day','svc-url'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('svc-category').value = 'streaming';
+  document.getElementById('svc-currency').value  = 'BS';
   renderEmojiPicker();
-  await populateCardSelect(s.cardId);
+  populateCardSelect();
   openModal('modal-service');
 }
 
-function renderEmojiPicker() {
-  const grid = document.getElementById('emoji-picker');
-  grid.innerHTML = EMOJIS.map(e => `
-    <div class="emoji-opt ${e === App.selectedEmoji ? 'selected' : ''}"
-         onclick="selectEmoji('${e}',this)">${e}</div>`).join('');
-}
+/* ── Emojis ─────────────────────────────────────── */
+const EMOJIS = ['📺','🎵','🎮','📚','🤖','🛡️','💰','🏠','⚡','💧','📦','🌐',
+                '📱','💻','🎬','🎧','🏋️','🚗','✈️','🍕','☕','🔔','☁️','🏥',
+                '🎭','▶️','🏰','💬','🎨','👨‍💻','📝','🖼️','💪','📡','📦'];
 
+function renderEmojiPicker() {
+  document.getElementById('emoji-picker').innerHTML = EMOJIS.map(e =>
+    `<div class="emoji-opt ${e===App.selectedEmoji?'selected':''}" onclick="selectEmoji('${e}',this)">${e}</div>`
+  ).join('');
+}
 function selectEmoji(e, el) {
   App.selectedEmoji = e;
-  document.querySelectorAll('.emoji-opt').forEach(o => o.classList.remove('selected'));
+  document.querySelectorAll('.emoji-opt').forEach(o=>o.classList.remove('selected'));
   el.classList.add('selected');
 }
 
-async function populateCardSelect(selectedCardId = '') {
-  const cards  = await dbGetAll('cards');
-  const select = document.getElementById('svc-card');
-  select.innerHTML = '<option value="">— Sin tarjeta —</option>' +
-    cards.map(c => `<option value="${c.id}" ${c.id === selectedCardId ? 'selected' : ''}>
-      ${c.alias} ••${c.digits}
-    </option>`).join('');
+/* ── Card select ────────────────────────────────── */
+async function populateCardSelect(sel='') {
+  const cards = await dbGetAll('cards');
+  document.getElementById('svc-card').innerHTML =
+    `<option value="">— Sin tarjeta —</option>` +
+    cards.map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.alias} ••${c.digits}</option>`).join('');
 }
 
+/* ── Save / Delete Servicio ─────────────────────── */
 async function saveService() {
   const name     = document.getElementById('svc-name').value.trim();
   const amount   = parseFloat(document.getElementById('svc-amount').value);
@@ -1894,27 +1455,23 @@ async function saveService() {
   const cardId   = document.getElementById('svc-card').value;
   const url      = document.getElementById('svc-url').value.trim();
 
-  if (!name)              { showToast('Ingresa el nombre del servicio','error'); return; }
-  if (isNaN(amount) || amount < 0) { showToast('Ingresa un monto válido','error'); return; }
-  if (isNaN(day) || day < 1 || day > 31) { showToast('Ingresa un día válido (1-31)','error'); return; }
+  if (!name)              { showToast('Ingresa el nombre','error'); return; }
+  if (isNaN(amount)||amount<0) { showToast('Monto inválido','error'); return; }
+  if (isNaN(day)||day<1||day>31) { showToast('Día inválido (1-31)','error'); return; }
 
-  const svc = {
-    id:       App.editingServiceId || genId(),
+  const existing = App.editingServiceId ? await dbGet('services',App.editingServiceId) : null;
+  await dbPut('services', {
+    id:        App.editingServiceId || genId(),
     name, amount, day, category, currency, cardId, url,
-    icon:     App.selectedEmoji,
-    active:   true,
-    createdAt: App.editingServiceId ? undefined : Date.now()
-  };
-  if (App.editingServiceId) {
-    const existing = await dbGet('services', App.editingServiceId);
-    svc.active    = existing.active;
-    svc.createdAt = existing.createdAt;
-  }
+    icon:      App.selectedEmoji,
+    active:    existing ? existing.active : true,
+    createdAt: existing ? existing.createdAt : Date.now()
+  });
 
-  await dbPut('services', svc);
   closeModal('modal-service');
   await renderAll();
-  showToast(App.editingServiceId ? '✏️ Servicio actualizado' : '✅ Servicio agregado');
+  await renderNotifSchedule();
+  showToast(App.editingServiceId ? '✏️ Actualizado' : '✅ Servicio agregado');
 }
 
 async function deleteCurrentService() {
@@ -1923,37 +1480,54 @@ async function deleteCurrentService() {
   await dbDelete('services', App.editingServiceId);
   closeModal('modal-service');
   await renderAll();
-  showToast('🗑️ Servicio eliminado');
+  showToast('🗑️ Eliminado');
 }
 
-/* =====================================================
-   MODAL — Agregar Tarjeta
-   ===================================================== */
+/* ── Editar desde detalle ───────────────────────── */
+async function editCurrentService() {
+  closeModal('modal-detail');
+  const s = await dbGet('services', App.currentServiceId);
+  if (!s) return;
+  App.editingServiceId = s.id;
+  App.selectedEmoji = s.icon || '📋';
+  document.getElementById('modal-service-title').textContent = 'Editar servicio';
+  document.getElementById('btn-delete-svc').classList.remove('hidden');
+  document.getElementById('svc-name').value     = s.name;
+  document.getElementById('svc-amount').value   = s.amount;
+  document.getElementById('svc-day').value      = s.day;
+  document.getElementById('svc-url').value      = s.url||'';
+  document.getElementById('svc-category').value = s.category;
+  document.getElementById('svc-currency').value = s.currency||'BS';
+  renderEmojiPicker();
+  await populateCardSelect(s.cardId);
+  openModal('modal-service');
+}
+
+/* ══════════════════════════════════════════════════
+   MODAL — Tarjetas
+   ══════════════════════════════════════════════════ */
+const CARD_COLORS = ['#0d2040','#1a1035','#0a2010','#2a1000','#001a2a','#1a1a1a'];
+
 function openAddCardModal() {
   renderCardColorPicker();
-  ['card-alias','card-digits','card-bank'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
+  ['card-alias','card-digits','card-bank'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('card-type').value = 'Visa';
+  document.getElementById('modal-card-title').textContent = 'Nueva tarjeta';
   openModal('modal-card');
 }
 
 function renderCardColorPicker() {
-  const picker = document.getElementById('card-color-picker');
   App.selectedCardColor = CARD_COLORS[0];
-  picker.innerHTML = CARD_COLORS.map((c, i) => `
-    <div onclick="selectCardColor('${c}',this)"
-         style="width:36px;height:36px;border-radius:10px;background:${c};
-                border:2px solid ${i === 0 ? 'var(--accent-blue)' : 'var(--border)'};
-                cursor:pointer;transition:border-color 0.15s"
-         data-color="${c}"></div>`).join('');
+  document.getElementById('card-color-picker').innerHTML = CARD_COLORS.map((c,i) =>
+    `<div onclick="selectCardColor('${c}',this)" data-color="${c}"
+       style="width:36px;height:36px;border-radius:10px;background:${c};
+              border:2px solid ${i===0?'var(--accent-blue)':'var(--border)'};cursor:pointer;transition:border-color 0.15s"></div>`
+  ).join('');
 }
-
 function selectCardColor(color, el) {
   App.selectedCardColor = color;
-  document.querySelectorAll('#card-color-picker div').forEach(d => {
-    d.style.borderColor = d.dataset.color === color ? 'var(--accent-blue)' : 'var(--border)';
-  });
+  document.querySelectorAll('#card-color-picker div').forEach(d =>
+    d.style.borderColor = d.dataset.color===color ? 'var(--accent-blue)' : 'var(--border)');
 }
 
 async function saveCard() {
@@ -1961,49 +1535,44 @@ async function saveCard() {
   const digits = document.getElementById('card-digits').value.trim();
   const type   = document.getElementById('card-type').value;
   const bank   = document.getElementById('card-bank').value.trim();
-
-  if (!alias)                { showToast('Ingresa un alias para la tarjeta','error'); return; }
-  if (!/^\d{4}$/.test(digits)) { showToast('Ingresa exactamente 4 dígitos','error'); return; }
-
-  await dbPut('cards', {
-    id: genId(), alias, digits, type, bank,
-    color: App.selectedCardColor,
-    createdAt: Date.now()
-  });
-
+  if (!alias)             { showToast('Ingresa un alias','error'); return; }
+  if (!/^\d{4}$/.test(digits)) { showToast('Ingresa 4 dígitos exactos','error'); return; }
+  await dbPut('cards', { id:genId(), alias, digits, type, bank, color:App.selectedCardColor, createdAt:Date.now() });
   closeModal('modal-card');
   await renderAll();
   showToast('✅ Tarjeta agregada');
-  // Ir a tab de tarjetas
   switchTab('cards');
 }
 
-/* =====================================================
-   MODAL — Detalle de Servicio
-   ===================================================== */
+async function openCardDetail(cardId) {
+  const c = await dbGet('cards', cardId);
+  if (!c) return;
+  showToast(`💳 ${c.alias} •••• ${c.digits} (${c.type})`, 'info');
+}
+
+/* ══════════════════════════════════════════════════
+   MODAL — Detalle + Flujo de pago
+   ══════════════════════════════════════════════════ */
 async function openDetail(serviceId) {
   App.currentServiceId = serviceId;
-  const s     = await dbGet('services', serviceId);
-  const cards = await dbGetAll('cards');
-  const card  = s.cardId ? cards.find(c => c.id === s.cardId) : null;
-  const days  = daysUntil(s.day);
+  App.payFlowState = { fondosOk:false, tarjetaOk:false, servicioOk:false };
 
-  document.getElementById('detail-icon').textContent     = s.icon || '📋';
+  const s    = await dbGet('services', serviceId);
+  const card = s.cardId ? (await dbGetAll('cards')).find(c=>c.id===s.cardId) : null;
+  const days = daysUntil(s.day);
+
+  document.getElementById('detail-icon').textContent     = s.icon||'📋';
   document.getElementById('detail-name').textContent     = s.name;
   document.getElementById('detail-category').textContent = categoryLabel(s.category);
   document.getElementById('detail-amount').textContent   = formatMoney(s.amount, s.currency);
   document.getElementById('detail-day').textContent      = `Día ${s.day}`;
   document.getElementById('detail-card').textContent     = card ? `${card.alias} ••${card.digits}` : '—';
+  document.getElementById('detail-next').textContent     = days < 0
+    ? `Venció hace ${Math.abs(days)}d` : days===0 ? '¡Hoy!' : `En ${days} día${days!==1?'s':''}`;
+  document.getElementById('detail-toggle').classList.toggle('on', s.active!==false);
 
-  const nextText = days < 0
-    ? `Venció hace ${Math.abs(days)}d`
-    : days === 0 ? '¡Hoy!' : `En ${days} día${days !== 1 ? 's' : ''}`;
-  document.getElementById('detail-next').textContent = nextText;
-
-  const toggle = document.getElementById('detail-toggle');
-  toggle.classList.toggle('on', s.active !== false);
-
-  document.getElementById('detail-pay-btn').style.display = s.url ? '' : 'none';
+  // Ocultar checklist hasta que se inicie el flujo
+  document.getElementById('pay-checklist-wrap').classList.add('hidden');
 
   openModal('modal-detail');
 }
@@ -2012,73 +1581,161 @@ async function toggleServiceActive() {
   const s = await dbGet('services', App.currentServiceId);
   s.active = !s.active;
   await dbPut('services', s);
-  const toggle = document.getElementById('detail-toggle');
-  toggle.classList.toggle('on', s.active);
+  document.getElementById('detail-toggle').classList.toggle('on', s.active);
   await renderServices();
   showToast(s.active ? '✅ Servicio activado' : '⏸️ Servicio pausado');
 }
 
-async function goToPay() {
+/* ── Flujo guiado de pago ───────────────────────── */
+async function startPayFlow() {
   const s = await dbGet('services', App.currentServiceId);
-  if (s.url) {
-    closeModal('modal-detail');
-    showToast('📲 Abriendo plataforma de pago...','info');
-    setTimeout(() => { window.open(s.url, '_blank'); }, 500);
+  App.payFlowState = { fondosOk:false, tarjetaOk:false, servicioOk:false };
+
+  const wrap = document.getElementById('pay-checklist-wrap');
+  wrap.classList.remove('hidden');
+  renderPayFlow(s);
+
+  // Scroll al checklist
+  wrap.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function renderPayFlow(s) {
+  const st = App.payFlowState;
+  document.getElementById('pay-flow').innerHTML = `
+    <div class="pay-step ${st.fondosOk?'done':'active'}" onclick="checkPayStep('fondosOk','${s.id}')">
+      <div class="pay-step-num">${st.fondosOk?'✓':'1'}</div>
+      <div class="pay-step-info">
+        <div class="pay-step-title">Verificar fondos</div>
+        <div class="pay-step-desc">¿Hay saldo suficiente en la tarjeta?</div>
+      </div>
+      <div class="pay-step-check">${st.fondosOk?'✅':'⬜'}</div>
+    </div>
+    <div class="pay-step ${st.fondosOk?(st.tarjetaOk?'done':'active'):''}" onclick="${st.fondosOk?`checkPayStep('tarjetaOk','${s.id}')`:'void(0)'}">
+      <div class="pay-step-num">${st.tarjetaOk?'✓':'2'}</div>
+      <div class="pay-step-info">
+        <div class="pay-step-title">Tarjeta habilitada</div>
+        <div class="pay-step-desc">¿Está activa para pagos online?</div>
+      </div>
+      <div class="pay-step-check">${st.tarjetaOk?'✅':'⬜'}</div>
+    </div>
+    <div class="pay-step ${st.tarjetaOk?(st.servicioOk?'done':'active'):''}" onclick="${st.tarjetaOk?`openServiceAndCheck('${s.url||''}','${s.id}')`:'void(0)'}">
+      <div class="pay-step-num">${st.servicioOk?'✓':'3'}</div>
+      <div class="pay-step-info">
+        <div class="pay-step-title">Ir a pagar</div>
+        <div class="pay-step-desc">${s.url?`Abrir ${s.name}`:'Abrir la plataforma manualmente'}</div>
+      </div>
+      <div class="pay-step-check">${st.servicioOk?'💳':'⬜'}</div>
+    </div>
+    ${st.servicioOk ? `
+    <div class="pay-step done" onclick="openConfirmPayModal()">
+      <div class="pay-step-num">✓</div>
+      <div class="pay-step-info">
+        <div class="pay-step-title">Confirmar pago</div>
+        <div class="pay-step-desc">Registrar el pago realizado</div>
+      </div>
+      <div class="pay-step-check">📋</div>
+    </div>` : ''}
+  `;
+}
+
+async function checkPayStep(stepKey, serviceId) {
+  if (navigator.vibrate) navigator.vibrate(40);
+  App.payFlowState[stepKey] = true;
+  const s = await dbGet('services', serviceId);
+  renderPayFlow(s);
+  const messages = { fondosOk:'💰 Fondos confirmados', tarjetaOk:'💳 Tarjeta verificada' };
+  showToast(messages[stepKey]||'✅ Paso completado');
+}
+
+async function openServiceAndCheck(url, serviceId) {
+  App.payFlowState.servicioOk = true;
+  const s = await dbGet('services', serviceId);
+  renderPayFlow(s);
+  if (url) {
+    showToast('📲 Abriendo plataforma...','info');
+    setTimeout(()=>window.open(url,'_blank'), 600);
+  } else {
+    showToast('📱 Abre la app/plataforma manualmente','info');
   }
 }
 
-/* =====================================================
+function openConfirmPayModal() {
+  dbGet('services', App.currentServiceId).then(s => {
+    document.getElementById('confirm-amount').value = s.amount;
+    document.getElementById('confirm-note').value = '';
+    openModal('modal-confirm-pay');
+  });
+}
+
+async function confirmPayment() {
+  const s      = await dbGet('services', App.currentServiceId);
+  const amount = parseFloat(document.getElementById('confirm-amount').value) || s.amount;
+  const note   = document.getElementById('confirm-note').value.trim();
+
+  await dbPut('payments', {
+    id:        genId(),
+    serviceId: s.id,
+    serviceName: s.name,
+    amount,
+    currency:  s.currency,
+    note,
+    paidAt:    Date.now()
+  });
+
+  closeModal('modal-confirm-pay');
+  closeModal('modal-detail');
+  await renderAll();
+  showToast(`✅ Pago de ${s.name} registrado`,'pay');
+}
+
+/* ══════════════════════════════════════════════════
    MODAL — Control
-   ===================================================== */
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-function closeOnOverlay(e, id) {
-  if (e.target === document.getElementById(id)) closeModal(id);
-}
+   ══════════════════════════════════════════════════ */
+const openModal    = (id) => document.getElementById(id).classList.add('open');
+const closeModal   = (id) => document.getElementById(id).classList.remove('open');
+const closeOnOverlay = (e,id) => { if (e.target===document.getElementById(id)) closeModal(id); };
 
-/* =====================================================
-   SERVICE WORKER — Registro
-   ===================================================== */
+/* ══════════════════════════════════════════════════
+   SERVICE WORKER
+   ══════════════════════════════════════════════════ */
 async function registerSW() {
-  if ('serviceWorker' in navigator) {
-    try {
-      await navigator.serviceWorker.register('sw.js');
-      console.log('[BillManager] Service Worker registrado');
-    } catch (e) {
-      console.warn('[BillManager] SW no registrado:', e);
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.register('/billmanager/sw.js', { scope: '/billmanager/' });
+    console.log('[BillManager] SW v3 registrado');
+
+    // Intentar periodic sync (Chrome Android)
+    if ('periodicSync' in reg) {
+      const status = await navigator.permissions.query({ name:'periodic-background-sync' });
+      if (status.state === 'granted') {
+        await reg.periodicSync.register('daily-check', { minInterval: 24*60*60*1000 });
+      }
     }
-  }
+  } catch(e) { console.warn('[BillManager] SW:', e); }
 }
 
-/* =====================================================
-   INICIO DE LA APP
-   ===================================================== */
+/* ══════════════════════════════════════════════════
+   BOOT
+   ══════════════════════════════════════════════════ */
 async function boot() {
   await initDB();
   await registerSW();
 
-  // Verificar si es primera ejecución
-  const setupDone = await dbGet('config', 'setup_complete');
-
+  const setupDone = await dbGet('config','setup_complete');
   if (!setupDone) {
-    // Primera vez: setup de PIN
     showScreen('screen-setup');
   } else {
-    // Mostrar pantalla de auth
     showScreen('screen-auth');
-    // Auto-intentar biometría si está disponible
-    const bioEnabled = await dbGet('config', 'biometric_enabled');
-    if (bioEnabled && bioEnabled.value) {
-      setTimeout(() => doBioAuth(), 600);
-    }
+    const bioEnabled = await dbGet('config','biometric_enabled');
+    if (bioEnabled?.value) setTimeout(doBioAuth, 600);
+  }
+
+  // Verificar notificaciones al abrir (si ya tenemos permiso)
+  if (Notification.permission === 'granted') {
+    setTimeout(scheduleLocalNotifications, 2000);
   }
 }
 
-// Arrancar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', boot);
 </script>
 </body>
