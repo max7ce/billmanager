@@ -1,0 +1,2085 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0f1a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>BillManager</title>
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- Fuentes: Sora (display) + DM Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ================================================
+       VARIABLES Y RESET
+       ================================================ */
+    :root {
+      --bg-base:      #080d17;
+      --bg-card:      #0f1826;
+      --bg-surface:   #141f32;
+      --bg-elevated:  #1a2740;
+      --border:       rgba(255,255,255,0.06);
+      --border-glow:  rgba(56,189,248,0.25);
+
+      --accent-blue:  #38bdf8;
+      --accent-green: #34d399;
+      --accent-amber: #fbbf24;
+      --accent-red:   #f87171;
+      --accent-purple:#a78bfa;
+
+      --text-primary: #f0f6ff;
+      --text-secondary:#8ba3c0;
+      --text-muted:   #4a6280;
+
+      --radius-sm:    10px;
+      --radius-md:    16px;
+      --radius-lg:    22px;
+      --radius-xl:    30px;
+
+      --safe-top:     env(safe-area-inset-top, 0px);
+      --safe-bottom:  env(safe-area-inset-bottom, 0px);
+
+      --font-display: 'Sora', sans-serif;
+      --font-body:    'DM Sans', sans-serif;
+
+      --shadow-card:  0 4px 24px rgba(0,0,0,0.4);
+      --shadow-glow:  0 0 30px rgba(56,189,248,0.15);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.5;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    /* ================================================
+       LAYOUT PRINCIPAL — Mobile first S23 Ultra
+       ================================================ */
+    #app {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+      overflow: hidden;
+    }
+
+    /* ================================================
+       PANTALLA: AUTH
+       ================================================ */
+    #screen-auth {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 32px;
+      gap: 0;
+      background: var(--bg-base);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Fondo decorativo */
+    #screen-auth::before {
+      content: '';
+      position: absolute;
+      top: -120px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .auth-logo {
+      font-family: var(--font-display);
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      position: relative;
+    }
+    .auth-logo span { color: var(--accent-blue); }
+
+    .auth-tagline {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 64px;
+      letter-spacing: 0.3px;
+    }
+
+    /* Botón biométrico */
+    .bio-btn-wrap {
+      position: relative;
+      margin-bottom: 48px;
+    }
+
+    .bio-pulse {
+      position: absolute;
+      inset: -20px;
+      border-radius: 50%;
+      background: transparent;
+      border: 2px solid rgba(56,189,248,0.2);
+      animation: pulse-ring 2.5s ease-out infinite;
+    }
+    .bio-pulse:nth-child(2) { animation-delay: 0.8s; }
+    .bio-pulse:nth-child(3) { animation-delay: 1.6s; }
+
+    @keyframes pulse-ring {
+      0%   { transform: scale(0.85); opacity: 0.8; }
+      100% { transform: scale(1.5);  opacity: 0; }
+    }
+
+    .bio-btn {
+      position: relative;
+      z-index: 1;
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(145deg, var(--bg-elevated), var(--bg-surface));
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s, box-shadow 0.15s;
+      outline: none;
+    }
+    .bio-btn:active { transform: scale(0.92); }
+    .bio-btn svg { width: 44px; height: 44px; }
+
+    .bio-label {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .bio-label strong {
+      display: block;
+      font-size: 16px;
+      color: var(--text-primary);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    /* PIN fallback */
+    .pin-section {
+      width: 100%;
+      max-width: 320px;
+      margin-top: 8px;
+    }
+
+    .pin-title {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .pin-dots {
+      display: flex; justify-content: center; gap: 14px;
+      margin-bottom: 28px;
+    }
+    .pin-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid var(--text-muted);
+      background: transparent;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .pin-dot.filled {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+    }
+
+    .pin-pad {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    }
+    .pin-key {
+      aspect-ratio: 1;
+      border: none;
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s, transform 0.08s;
+      outline: none;
+      border: 1px solid var(--border);
+    }
+    .pin-key:active { background: var(--bg-elevated); transform: scale(0.94); }
+    .pin-key.special { font-size: 13px; color: var(--text-secondary); }
+    .pin-key.danger  { color: var(--accent-red); }
+
+    .auth-status {
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      min-height: 20px;
+    }
+    .auth-status.error { color: var(--accent-red); }
+    .auth-status.success { color: var(--accent-green); }
+
+    /* ================================================
+       PANTALLA: SETUP PIN (primer uso)
+       ================================================ */
+    #screen-setup {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 32px;
+      gap: 24px;
+    }
+
+    .setup-header {
+      text-align: center;
+    }
+    .setup-header h2 {
+      font-family: var(--font-display);
+      font-size: 26px; font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .setup-header p { color: var(--text-secondary); font-size: 14px; }
+
+    /* ================================================
+       PANTALLA PRINCIPAL — Con tabs
+       ================================================ */
+    #screen-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .app-header {
+      padding: 18px 20px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .header-brand {
+      font-family: var(--font-display);
+      font-size: 22px; font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .header-brand span { color: var(--accent-blue); }
+
+    .header-actions { display: flex; gap: 10px; }
+    .icon-btn {
+      width: 42px; height: 42px; border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
+      font-size: 18px;
+    }
+    .icon-btn:active { background: var(--bg-elevated); }
+
+    /* Tabs */
+    .tab-bar {
+      display: flex;
+      padding: 0 20px;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .tab-btn {
+      flex: 1; padding: 14px 4px;
+      background: none; border: none;
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      font-size: 12px; font-weight: 500;
+      cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      position: relative; top: 1px;
+    }
+    .tab-btn .tab-icon { font-size: 20px; }
+    .tab-btn.active {
+      color: var(--accent-blue);
+      border-bottom-color: var(--accent-blue);
+    }
+
+    /* Contenido scrolleable */
+    .tab-content {
+      flex: 1; overflow-y: auto;
+      padding: 20px 20px 100px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tab-content::-webkit-scrollbar { display: none; }
+
+    /* Tab panels */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ================================================
+       RESUMEN MENSUAL (top del dashboard)
+       ================================================ */
+    .summary-card {
+      background: linear-gradient(135deg, #0d2040 0%, #0a1628 100%);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-glow);
+    }
+    .summary-card::after {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 160px; height: 160px;
+      background: radial-gradient(circle, rgba(56,189,248,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .summary-label {
+      font-size: 12px; color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 1px; margin-bottom: 6px;
+    }
+    .summary-amount {
+      font-family: var(--font-display);
+      font-size: 38px; font-weight: 800;
+      letter-spacing: -1.5px; color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .summary-amount .currency {
+      font-size: 20px; font-weight: 400; color: var(--text-secondary);
+      vertical-align: super; margin-right: 4px;
+    }
+    .summary-sub {
+      font-size: 13px; color: var(--text-secondary);
+      margin-bottom: 18px;
+    }
+    .summary-row {
+      display: flex; gap: 12px;
+    }
+    .summary-chip {
+      flex: 1; background: rgba(255,255,255,0.05);
+      border-radius: var(--radius-sm); padding: 10px 12px;
+      border: 1px solid var(--border);
+    }
+    .chip-label { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+    .chip-val { font-size: 16px; font-weight: 600; font-family: var(--font-display); }
+    .chip-val.green { color: var(--accent-green); }
+    .chip-val.amber { color: var(--accent-amber); }
+    .chip-val.red   { color: var(--accent-red); }
+
+    /* ================================================
+       SECCIÓN + TÍTULO
+       ================================================ */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 16px; font-weight: 700;
+      color: var(--text-primary);
+    }
+    .section-count {
+      font-size: 12px; color: var(--text-muted);
+      background: var(--bg-surface); border-radius: 20px;
+      padding: 2px 10px;
+    }
+
+    /* ================================================
+       TARJETAS DE SERVICIOS
+       ================================================ */
+    .services-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .service-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex; align-items: center; gap: 14px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .service-card:active { background: var(--bg-surface); }
+
+    /* Barra lateral de color */
+    .service-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 8px; bottom: 8px;
+      width: 3px; border-radius: 0 2px 2px 0;
+    }
+    .service-card.cat-streaming::before { background: var(--accent-blue); }
+    .service-card.cat-ia::before        { background: var(--accent-purple); }
+    .service-card.cat-seguro::before    { background: var(--accent-green); }
+    .service-card.cat-prestamo::before  { background: var(--accent-amber); }
+    .service-card.cat-alquiler::before  { background: var(--accent-red); }
+    .service-card.cat-servicio::before  { background: var(--text-secondary); }
+    .service-card.cat-otro::before      { background: var(--text-muted); }
+
+    .service-icon {
+      width: 46px; height: 46px; border-radius: 12px;
+      background: var(--bg-surface);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+
+    .service-info { flex: 1; min-width: 0; }
+    .service-name {
+      font-weight: 600; font-size: 15px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+    .service-meta {
+      font-size: 12px; color: var(--text-muted);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .service-card-tag {
+      background: var(--bg-elevated); border-radius: 4px;
+      padding: 1px 6px; font-size: 11px; color: var(--text-secondary);
+    }
+
+    .service-right { text-align: right; flex-shrink: 0; }
+    .service-amount {
+      font-family: var(--font-display);
+      font-size: 17px; font-weight: 700;
+      color: var(--text-primary);
+    }
+    .service-due {
+      font-size: 11px; color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .service-due.urgent { color: var(--accent-amber); }
+    .service-due.overdue { color: var(--accent-red); }
+
+    /* Badge de alerta */
+    .alert-badge {
+      position: absolute;
+      top: 10px; right: 10px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent-amber);
+      box-shadow: 0 0 6px var(--accent-amber);
+    }
+
+    /* Estado del servicio */
+    .status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      display: inline-block;
+    }
+    .status-dot.active   { background: var(--accent-green); }
+    .status-dot.inactive { background: var(--text-muted); }
+
+    /* ================================================
+       EMPTY STATE
+       ================================================ */
+    .empty-state {
+      text-align: center; padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state .empty-icon { font-size: 56px; margin-bottom: 16px; opacity: 0.4; }
+    .empty-state h3 {
+      font-family: var(--font-display); font-size: 18px; font-weight: 600;
+      color: var(--text-secondary); margin-bottom: 8px;
+    }
+    .empty-state p { font-size: 14px; line-height: 1.6; }
+
+    /* ================================================
+       FAB — Botón flotante agregar
+       ================================================ */
+    .fab {
+      position: fixed;
+      bottom: calc(80px + var(--safe-bottom));
+      right: 20px;
+      width: 58px; height: 58px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--accent-blue), #0ea5e9);
+      border: none;
+      color: #fff;
+      font-size: 26px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 24px rgba(56,189,248,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+      z-index: 100;
+    }
+    .fab:active { transform: scale(0.92); }
+
+    /* ================================================
+       BOTTOM NAV (alternativa visual a tabs)
+       ================================================ */
+    /* (usamos tab-bar arriba, no duplicamos) */
+
+    /* ================================================
+       MODAL / DRAWER
+       ================================================ */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      display: flex; align-items: flex-end;
+      backdrop-filter: blur(4px);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal-sheet {
+      width: 100%;
+      background: var(--bg-card);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      padding: 12px 24px 40px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .modal-overlay.open .modal-sheet { transform: translateY(0); }
+
+    .modal-handle {
+      width: 40px; height: 4px; border-radius: 2px;
+      background: var(--border);
+      margin: 0 auto 20px;
+    }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 20px; font-weight: 700;
+      margin-bottom: 24px; text-align: center;
+    }
+
+    /* ================================================
+       FORMULARIO
+       ================================================ */
+    .form-group { margin-bottom: 18px; }
+    .form-label {
+      display: block;
+      font-size: 13px; font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px; letter-spacing: 0.2px;
+    }
+    .form-input, .form-select {
+      width: 100%; padding: 14px 16px;
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: var(--font-body); font-size: 16px;
+      outline: none; transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    .form-input:focus, .form-select:focus {
+      border-color: var(--accent-blue);
+    }
+    .form-input::placeholder { color: var(--text-muted); }
+
+    .form-select option { background: var(--bg-card); }
+
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
+
+    /* Selector de emoji/icono */
+    .emoji-grid {
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;
+      margin-top: 8px;
+    }
+    .emoji-opt {
+      aspect-ratio: 1; border-radius: 10px;
+      background: var(--bg-base);
+      border: 2px solid var(--border);
+      font-size: 22px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .emoji-opt:active, .emoji-opt.selected {
+      border-color: var(--accent-blue);
+      background: rgba(56,189,248,0.1);
+    }
+
+    /* ================================================
+       BOTONES
+       ================================================ */
+    .btn {
+      width: 100%; padding: 16px;
+      border-radius: var(--radius-md);
+      border: none; cursor: pointer;
+      font-family: var(--font-body); font-size: 16px; font-weight: 600;
+      transition: opacity 0.15s, transform 0.1s;
+      outline: none;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), #0ea5e9);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(56,189,248,0.25);
+    }
+    .btn-secondary {
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-danger {
+      background: rgba(248,113,113,0.1);
+      color: var(--accent-red);
+      border: 1px solid rgba(248,113,113,0.2);
+    }
+    .btn + .btn { margin-top: 10px; }
+
+    /* ================================================
+       TARJETAS (panel de tarjetas)
+       ================================================ */
+    .cards-grid {
+      display: flex; flex-direction: column; gap: 14px;
+    }
+
+    .card-item {
+      background: linear-gradient(135deg, var(--bg-surface), var(--bg-card));
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      cursor: pointer;
+      transition: background 0.15s;
+      position: relative; overflow: hidden;
+    }
+    .card-item:active { background: var(--bg-elevated); }
+
+    .card-item::after {
+      content: '';
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+    }
+
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+    .card-network { font-size: 22px; }
+    .card-type-badge {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+      text-transform: uppercase;
+      background: var(--bg-elevated); border-radius: 6px;
+      padding: 3px 8px; color: var(--text-muted);
+    }
+    .card-number {
+      font-family: var(--font-display); font-size: 18px; font-weight: 600;
+      letter-spacing: 4px; color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+    .card-alias { font-weight: 600; font-size: 15px; }
+    .card-bottom { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 8px; }
+    .card-services-count { font-size: 12px; color: var(--text-muted); }
+
+    /* ================================================
+       PRÓXIMOS VENCIMIENTOS (panel alertas)
+       ================================================ */
+    .alert-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .alert-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .alert-icon-wrap {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+    }
+    .alert-icon-wrap.urgent  { background: rgba(251,191,36,0.1); }
+    .alert-icon-wrap.overdue { background: rgba(248,113,113,0.1); }
+    .alert-icon-wrap.ok      { background: rgba(52,211,153,0.1); }
+
+    .alert-info { flex: 1; }
+    .alert-name { font-weight: 600; font-size: 14px; }
+    .alert-date { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .alert-days {
+      font-family: var(--font-display); font-size: 22px; font-weight: 800;
+      text-align: right; flex-shrink: 0;
+    }
+    .alert-days.urgent  { color: var(--accent-amber); }
+    .alert-days.overdue { color: var(--accent-red); }
+    .alert-days.ok      { color: var(--accent-green); }
+    .alert-days-label { font-size: 10px; color: var(--text-muted); text-align: right; }
+
+    /* ================================================
+       DETAIL MODAL (ver servicio)
+       ================================================ */
+    .detail-icon {
+      width: 72px; height: 72px; border-radius: 20px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 38px; margin: 0 auto 16px;
+    }
+    .detail-name {
+      font-family: var(--font-display);
+      font-size: 24px; font-weight: 800;
+      text-align: center; margin-bottom: 4px;
+    }
+    .detail-category {
+      text-align: center; font-size: 13px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 24px;
+    }
+
+    .detail-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      margin-bottom: 24px;
+    }
+    .detail-cell {
+      background: var(--bg-base); border-radius: var(--radius-sm);
+      padding: 14px; border: 1px solid var(--border);
+    }
+    .detail-cell-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .detail-cell-val { font-weight: 600; font-size: 15px; }
+
+    /* Toggle activo/inactivo */
+    .toggle-wrap {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg-base); border-radius: var(--radius-sm);
+      padding: 14px 16px; border: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    .toggle-label { font-size: 15px; font-weight: 500; }
+    .toggle {
+      position: relative; width: 50px; height: 28px;
+      border-radius: 14px; background: var(--bg-elevated);
+      border: 1px solid var(--border); cursor: pointer;
+      transition: background 0.25s;
+    }
+    .toggle.on { background: var(--accent-green); border-color: var(--accent-green); }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      left: 3px; top: 3px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #fff;
+      transition: left 0.25s;
+    }
+    .toggle.on::after { left: 25px; }
+
+    /* ================================================
+       SNACKBAR / TOAST
+       ================================================ */
+    #toast {
+      position: fixed; bottom: calc(100px + var(--safe-bottom)); left: 20px; right: 20px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      font-size: 14px; font-weight: 500;
+      z-index: 500;
+      transform: translateY(20px); opacity: 0;
+      transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+      pointer-events: none;
+      display: flex; align-items: center; gap: 10px;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.success { border-color: rgba(52,211,153,0.3); }
+    #toast.error   { border-color: rgba(248,113,113,0.3); }
+
+    /* ================================================
+       ANIMACIONES DE ENTRADA
+       ================================================ */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .animate-in { animation: fadeInUp 0.35s ease both; }
+
+    /* Stagger para listas */
+    .service-card:nth-child(1) { animation-delay: 0.05s; }
+    .service-card:nth-child(2) { animation-delay: 0.10s; }
+    .service-card:nth-child(3) { animation-delay: 0.15s; }
+    .service-card:nth-child(4) { animation-delay: 0.20s; }
+    .service-card:nth-child(5) { animation-delay: 0.25s; }
+
+    /* ================================================
+       LOADING SPINNER
+       ================================================ */
+    .spinner {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent-blue);
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ================================================
+       HIDDEN UTILITY
+       ================================================ */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<!-- =====================================================
+     APP ROOT
+     ===================================================== -->
+<div id="app">
+
+  <!-- ===== PANTALLA: SETUP (primer uso) ===== -->
+  <div id="screen-setup" class="hidden">
+    <div class="setup-header animate-in">
+      <div style="font-size:52px;margin-bottom:16px">🔐</div>
+      <h2>Configurar PIN</h2>
+      <p>Crea un PIN de 6 dígitos como respaldo de autenticación</p>
+    </div>
+    <div class="pin-section animate-in" style="animation-delay:0.1s">
+      <div class="pin-title" id="setup-subtitle">Ingresa tu PIN</div>
+      <div class="pin-dots" id="setup-dots">
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="pin-pad">
+        <button class="pin-key" onclick="setupPin('1')">1</button>
+        <button class="pin-key" onclick="setupPin('2')">2</button>
+        <button class="pin-key" onclick="setupPin('3')">3</button>
+        <button class="pin-key" onclick="setupPin('4')">4</button>
+        <button class="pin-key" onclick="setupPin('5')">5</button>
+        <button class="pin-key" onclick="setupPin('6')">6</button>
+        <button class="pin-key" onclick="setupPin('7')">7</button>
+        <button class="pin-key" onclick="setupPin('8')">8</button>
+        <button class="pin-key" onclick="setupPin('9')">9</button>
+        <button class="pin-key special" onclick="setupPin('bio')">🪪</button>
+        <button class="pin-key" onclick="setupPin('0')">0</button>
+        <button class="pin-key danger" onclick="setupPin('del')">⌫</button>
+      </div>
+    </div>
+    <div id="setup-status" class="auth-status"></div>
+  </div>
+
+  <!-- ===== PANTALLA: AUTH ===== -->
+  <div id="screen-auth" class="hidden">
+    <div class="auth-logo animate-in">Bill<span>Manager</span></div>
+    <div class="auth-tagline animate-in" style="animation-delay:0.05s">Gestión inteligente de pagos</div>
+
+    <!-- Botón biométrico -->
+    <div class="bio-btn-wrap animate-in" style="animation-delay:0.1s">
+      <div class="bio-pulse"></div>
+      <div class="bio-pulse"></div>
+      <div class="bio-pulse"></div>
+      <button class="bio-btn" id="bio-btn" onclick="doBioAuth()">
+        <!-- Ícono huella digital SVG -->
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 20C12 13.373 17.373 8 24 8C30.627 8 36 13.373 36 20" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M8 22C8 12.059 15.059 4 24 4C32.941 4 40 12.059 40 22" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
+          <path d="M16 24C16 19.582 19.582 16 24 16C28.418 16 32 19.582 32 24C32 30 28 36 24 44" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M20 26C20 23.791 21.791 22 24 22C26.209 22 28 23.791 28 26C28 29.5 26 35 24 38" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="24" cy="26" r="2" fill="#38bdf8"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="bio-label animate-in" style="animation-delay:0.15s">
+      <strong>Toca para autenticar</strong>
+      Usa tu huella digital registrada
+    </div>
+
+    <!-- PIN fallback -->
+    <div class="pin-section animate-in" style="animation-delay:0.2s;margin-top:32px">
+      <div class="pin-title">o ingresa tu PIN</div>
+      <div class="pin-dots" id="auth-dots">
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="pin-pad">
+        <button class="pin-key" onclick="authPin('1')">1</button>
+        <button class="pin-key" onclick="authPin('2')">2</button>
+        <button class="pin-key" onclick="authPin('3')">3</button>
+        <button class="pin-key" onclick="authPin('4')">4</button>
+        <button class="pin-key" onclick="authPin('5')">5</button>
+        <button class="pin-key" onclick="authPin('6')">6</button>
+        <button class="pin-key" onclick="authPin('7')">7</button>
+        <button class="pin-key" onclick="authPin('8')">8</button>
+        <button class="pin-key" onclick="authPin('9')">9</button>
+        <button class="pin-key special" onclick="doBioAuth()">🔏</button>
+        <button class="pin-key" onclick="authPin('0')">0</button>
+        <button class="pin-key danger" onclick="authPin('del')">⌫</button>
+      </div>
+    </div>
+
+    <div id="auth-status" class="auth-status animate-in" style="animation-delay:0.25s"></div>
+  </div>
+
+  <!-- ===== PANTALLA: PRINCIPAL ===== -->
+  <div id="screen-main" class="hidden">
+
+    <!-- Header -->
+    <div class="app-header">
+      <div class="header-brand">Bill<span>Manager</span></div>
+      <div class="header-actions">
+        <button class="icon-btn" onclick="showToast('🔔 Notificaciones próximamente en Fase 2','info')">🔔</button>
+        <button class="icon-btn" onclick="doLock()">🔒</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="services" onclick="switchTab('services')">
+        <span class="tab-icon">📋</span> Servicios
+      </button>
+      <button class="tab-btn" data-tab="cards" onclick="switchTab('cards')">
+        <span class="tab-icon">💳</span> Tarjetas
+      </button>
+      <button class="tab-btn" data-tab="alerts" onclick="switchTab('alerts')">
+        <span class="tab-icon">⏰</span> Alertas
+      </button>
+    </div>
+
+    <!-- Contenido -->
+    <div class="tab-content">
+
+      <!-- === TAB: SERVICIOS === -->
+      <div id="tab-services" class="tab-panel active">
+        <!-- Resumen mensual -->
+        <div class="summary-card animate-in">
+          <div class="summary-label">Gasto mensual total</div>
+          <div class="summary-amount">
+            <span class="currency">Bs.</span>
+            <span id="total-monthly">0</span>
+          </div>
+          <div class="summary-sub" id="total-services-count">0 servicios activos</div>
+          <div class="summary-row">
+            <div class="summary-chip">
+              <div class="chip-label">Al día</div>
+              <div class="chip-val green" id="count-ok">0</div>
+            </div>
+            <div class="summary-chip">
+              <div class="chip-label">Próximos</div>
+              <div class="chip-val amber" id="count-urgent">0</div>
+            </div>
+            <div class="summary-chip">
+              <div class="chip-label">Vencidos</div>
+              <div class="chip-val red" id="count-overdue">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de servicios -->
+        <div class="section-header">
+          <div class="section-title">Mis servicios</div>
+          <div class="section-count" id="services-count-label">0</div>
+        </div>
+        <div class="services-list" id="services-list">
+          <!-- Renderizado dinámico -->
+        </div>
+      </div>
+
+      <!-- === TAB: TARJETAS === -->
+      <div id="tab-cards" class="tab-panel">
+        <div class="section-header">
+          <div class="section-title">Mis tarjetas</div>
+          <div class="section-count" id="cards-count-label">0</div>
+        </div>
+        <div class="cards-grid" id="cards-list">
+          <!-- Renderizado dinámico -->
+        </div>
+      </div>
+
+      <!-- === TAB: ALERTAS === -->
+      <div id="tab-alerts" class="tab-panel">
+        <div class="section-header">
+          <div class="section-title">Próximos vencimientos</div>
+        </div>
+        <div class="alert-list" id="alerts-list">
+          <!-- Renderizado dinámico -->
+        </div>
+      </div>
+
+    </div><!-- /tab-content -->
+
+    <!-- FAB -->
+    <button class="fab" id="fab-btn" onclick="openAddModal()">+</button>
+
+  </div><!-- /screen-main -->
+
+</div><!-- /app -->
+
+<!-- =====================================================
+     MODAL: AGREGAR SERVICIO
+     ===================================================== -->
+<div class="modal-overlay" id="modal-service" onclick="closeOnOverlay(event,'modal-service')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-service-title">Nuevo servicio</div>
+
+    <div class="form-group">
+      <label class="form-label">Nombre del servicio</label>
+      <input type="text" class="form-input" id="svc-name" placeholder="ej. Netflix, Claude Pro..." />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Ícono</label>
+      <div class="emoji-grid" id="emoji-picker">
+        <!-- Generado por JS -->
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Categoría</label>
+        <select class="form-select" id="svc-category">
+          <option value="streaming">📺 Streaming</option>
+          <option value="ia">🤖 Herramientas IA</option>
+          <option value="seguro">🛡️ Seguro</option>
+          <option value="prestamo">💰 Préstamo</option>
+          <option value="alquiler">🏠 Alquiler</option>
+          <option value="servicio">⚡ Servicio básico</option>
+          <option value="otro">📦 Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Moneda</label>
+        <select class="form-select" id="svc-currency">
+          <option value="BS">Bs.</option>
+          <option value="USD">USD</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Monto</label>
+        <input type="number" class="form-input" id="svc-amount" placeholder="0.00" step="0.01" min="0" inputmode="decimal" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Día de pago</label>
+        <input type="number" class="form-input" id="svc-day" placeholder="1-31" min="1" max="31" inputmode="numeric" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Tarjeta asociada</label>
+      <select class="form-select" id="svc-card">
+        <option value="">— Sin tarjeta —</option>
+        <!-- Poblado dinámicamente -->
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">URL del servicio (para abrir al pagar)</label>
+      <input type="url" class="form-input" id="svc-url" placeholder="https://..." inputmode="url" />
+    </div>
+
+    <button class="btn btn-primary" onclick="saveService()">Guardar servicio</button>
+    <button class="btn btn-secondary" onclick="closeModal('modal-service')">Cancelar</button>
+    <button class="btn btn-danger hidden" id="btn-delete-svc" onclick="deleteCurrentService()">Eliminar servicio</button>
+  </div>
+</div>
+
+<!-- =====================================================
+     MODAL: AGREGAR TARJETA
+     ===================================================== -->
+<div class="modal-overlay" id="modal-card" onclick="closeOnOverlay(event,'modal-card')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nueva tarjeta</div>
+
+    <div class="form-group">
+      <label class="form-label">Alias / nombre</label>
+      <input type="text" class="form-input" id="card-alias" placeholder="ej. Visa Banco Nacional" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Últimos 4 dígitos</label>
+        <input type="text" class="form-input" id="card-digits" placeholder="0000" maxlength="4" inputmode="numeric" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <select class="form-select" id="card-type">
+          <option value="Visa">Visa</option>
+          <option value="Mastercard">Mastercard</option>
+          <option value="Amex">Amex</option>
+          <option value="Otra">Otra</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Banco</label>
+      <input type="text" class="form-input" id="card-bank" placeholder="ej. Banco Nacional de Bolivia" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Color de tarjeta</label>
+      <div style="display:flex;gap:10px;margin-top:8px" id="card-color-picker">
+        <!-- Generado por JS -->
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveCard()">Guardar tarjeta</button>
+    <button class="btn btn-secondary" onclick="closeModal('modal-card')">Cancelar</button>
+  </div>
+</div>
+
+<!-- =====================================================
+     MODAL: DETALLE DE SERVICIO
+     ===================================================== -->
+<div class="modal-overlay" id="modal-detail" onclick="closeOnOverlay(event,'modal-detail')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="detail-icon" id="detail-icon">📋</div>
+    <div class="detail-name" id="detail-name">Servicio</div>
+    <div class="detail-category" id="detail-category">Categoría</div>
+
+    <div class="detail-grid">
+      <div class="detail-cell">
+        <div class="detail-cell-label">Monto mensual</div>
+        <div class="detail-cell-val" id="detail-amount">—</div>
+      </div>
+      <div class="detail-cell">
+        <div class="detail-cell-label">Día de pago</div>
+        <div class="detail-cell-val" id="detail-day">—</div>
+      </div>
+      <div class="detail-cell">
+        <div class="detail-cell-label">Tarjeta</div>
+        <div class="detail-cell-val" id="detail-card">—</div>
+      </div>
+      <div class="detail-cell">
+        <div class="detail-cell-label">Próximo pago</div>
+        <div class="detail-cell-val" id="detail-next">—</div>
+      </div>
+    </div>
+
+    <div class="toggle-wrap">
+      <span class="toggle-label">Servicio activo</span>
+      <div class="toggle" id="detail-toggle" onclick="toggleServiceActive()"></div>
+    </div>
+
+    <button class="btn btn-primary" id="detail-pay-btn" onclick="goToPay()">
+      🚀 Ir a pagar
+    </button>
+    <button class="btn btn-secondary" onclick="editCurrentService()">✏️ Editar</button>
+    <button class="btn btn-secondary" onclick="closeModal('modal-detail')">Cerrar</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Mensaje</span>
+</div>
+
+<!-- =====================================================
+     JAVASCRIPT
+     ===================================================== -->
+<script>
+/* =====================================================
+   ESTADO GLOBAL
+   ===================================================== */
+const App = {
+  isAuthenticated: false,
+  currentTab: 'services',
+  currentServiceId: null,
+  editingServiceId: null,
+  selectedEmoji: '📋',
+  selectedCardColor: '#1a2740',
+  setupPinFirst: '',
+  setupPinSecond: '',
+  setupStep: 'first', // 'first' | 'second'
+  authPinEntry: '',
+  setupPinEntry: ''
+};
+
+/* =====================================================
+   INDEXEDDB — Persistencia local
+   ===================================================== */
+let db;
+
+function initDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('BillManagerDB', 1);
+
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      // Servicios
+      if (!d.objectStoreNames.contains('services')) {
+        const svcStore = d.createObjectStore('services', { keyPath: 'id' });
+        svcStore.createIndex('category', 'category', { unique: false });
+      }
+      // Tarjetas
+      if (!d.objectStoreNames.contains('cards')) {
+        d.createObjectStore('cards', { keyPath: 'id' });
+      }
+      // Config (PIN, WebAuthn credential, etc.)
+      if (!d.objectStoreNames.contains('config')) {
+        d.createObjectStore('config', { keyPath: 'key' });
+      }
+    };
+
+    req.onsuccess = (e) => { db = e.target.result; resolve(); };
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+// CRUD genérico
+function dbGet(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+function dbPut(store, value) {
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).put(value);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+function dbDelete(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).delete(key);
+    req.onsuccess = () => resolve();
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+/* =====================================================
+   UTILIDADES
+   ===================================================== */
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function formatMoney(amount, currency = 'BS') {
+  const n = parseFloat(amount) || 0;
+  if (currency === 'USD') return `$${n.toFixed(2)}`;
+  return `Bs. ${n.toFixed(2)}`;
+}
+
+// Hash simple para PIN (no criptografía fuerte, pero suficiente para app local)
+async function hashPin(pin) {
+  const buf  = new TextEncoder().encode(pin + 'billmanager-salt-2024');
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function daysUntil(dayOfMonth) {
+  const today = new Date();
+  const now   = today.getDate();
+  const month = today.getMonth();
+  const year  = today.getFullYear();
+  let target  = new Date(year, month, dayOfMonth);
+  if (dayOfMonth < now) target = new Date(year, month + 1, dayOfMonth);
+  const diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+  return diff;
+}
+
+function alertLevel(days) {
+  if (days < 0)  return 'overdue';
+  if (days <= 3) return 'urgent';
+  return 'ok';
+}
+
+function categoryLabel(cat) {
+  const map = {
+    streaming: '📺 Streaming',
+    ia:        '🤖 Herramientas IA',
+    seguro:    '🛡️ Seguro',
+    prestamo:  '💰 Préstamo',
+    alquiler:  '🏠 Alquiler',
+    servicio:  '⚡ Servicio básico',
+    otro:      '📦 Otro'
+  };
+  return map[cat] || cat;
+}
+
+/* =====================================================
+   TOAST
+   ===================================================== */
+let toastTimer;
+function showToast(msg, type = 'success') {
+  const el  = document.getElementById('toast');
+  const ico = document.getElementById('toast-icon');
+  const txt = document.getElementById('toast-msg');
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  ico.textContent = icons[type] || 'ℹ️';
+  txt.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+/* =====================================================
+   PANTALLAS
+   ===================================================== */
+function showScreen(id) {
+  ['screen-auth','screen-setup','screen-main'].forEach(s => {
+    document.getElementById(s).classList.add('hidden');
+  });
+  document.getElementById(id).classList.remove('hidden');
+}
+
+/* =====================================================
+   AUTENTICACIÓN — WebAuthn
+   ===================================================== */
+
+// Verifica si WebAuthn está disponible
+function webAuthnAvailable() {
+  return !!(window.PublicKeyCredential &&
+            navigator.credentials &&
+            navigator.credentials.create);
+}
+
+// Registrar credencial biométrica (primer uso)
+async function registerBiometric() {
+  if (!webAuthnAvailable()) return false;
+
+  try {
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+
+    const credential = await navigator.credentials.create({
+      publicKey: {
+        challenge,
+        rp: { name: 'BillManager', id: location.hostname || 'localhost' },
+        user: {
+          id: new TextEncoder().encode('billmanager-user'),
+          name: 'usuario@billmanager',
+          displayName: 'Marco Antonio'
+        },
+        pubKeyCredParams: [
+          { type: 'public-key', alg: -7  },  // ES256
+          { type: 'public-key', alg: -257 }  // RS256
+        ],
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',   // huella del dispositivo
+          userVerification: 'required',
+          requireResidentKey: false
+        },
+        timeout: 60000
+      }
+    });
+
+    // Guardar ID de credencial en IndexedDB
+    await dbPut('config', {
+      key: 'webauthn_credential_id',
+      value: Array.from(new Uint8Array(credential.rawId))
+    });
+
+    return true;
+  } catch (err) {
+    console.warn('WebAuthn register error:', err);
+    return false;
+  }
+}
+
+// Autenticar con biometría
+async function doBioAuth() {
+  const bioBtn = document.getElementById('bio-btn');
+  const status = document.getElementById('auth-status');
+
+  if (!webAuthnAvailable()) {
+    if (status) {
+      status.textContent = '⚠️ Biometría no disponible en este dispositivo';
+      status.className = 'auth-status error';
+    }
+    return;
+  }
+
+  // Vibración táctil
+  if (navigator.vibrate) navigator.vibrate(50);
+
+  // Animación visual
+  bioBtn.style.boxShadow = '0 0 0 4px rgba(56,189,248,0.3), 0 8px 32px rgba(0,0,0,0.5)';
+
+  try {
+    const credData = await dbGet('config', 'webauthn_credential_id');
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+
+    const assertionOptions = {
+      publicKey: {
+        challenge,
+        timeout: 60000,
+        userVerification: 'required',
+        rpId: location.hostname || 'localhost'
+      }
+    };
+
+    // Si tenemos credential ID guardado, lo usamos como allowCredentials
+    if (credData && credData.value) {
+      assertionOptions.publicKey.allowCredentials = [{
+        type: 'public-key',
+        id: new Uint8Array(credData.value),
+        transports: ['internal']
+      }];
+    }
+
+    const assertion = await navigator.credentials.get(assertionOptions);
+
+    if (assertion) {
+      bioBtn.style.boxShadow = '0 0 0 4px rgba(52,211,153,0.3), 0 8px 32px rgba(0,0,0,0.5)';
+      if (status) { status.textContent = '✅ Autenticado'; status.className = 'auth-status success'; }
+      if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+      setTimeout(() => enterApp(), 400);
+    }
+  } catch (err) {
+    bioBtn.style.boxShadow = '0 0 0 4px rgba(248,113,113,0.3), 0 8px 32px rgba(0,0,0,0.5)';
+    if (status) { status.textContent = '❌ Autenticación fallida. Usa el PIN.'; status.className = 'auth-status error'; }
+    setTimeout(() => {
+      bioBtn.style.boxShadow = '';
+      if (status) { status.textContent = ''; status.className = 'auth-status'; }
+    }, 2000);
+    console.warn('WebAuthn auth error:', err);
+  }
+}
+
+/* =====================================================
+   PIN — Setup (primer uso)
+   ===================================================== */
+function setupPin(key) {
+  if (navigator.vibrate) navigator.vibrate(30);
+
+  if (key === 'del') {
+    App.setupPinEntry = App.setupPinEntry.slice(0, -1);
+  } else if (key === 'bio') {
+    // Nada aquí en setup, por ahora
+    return;
+  } else {
+    if (App.setupPinEntry.length >= 6) return;
+    App.setupPinEntry += key;
+  }
+
+  updateSetupDots();
+
+  if (App.setupPinEntry.length === 6) {
+    setTimeout(() => processSetupPin(), 200);
+  }
+}
+
+function updateSetupDots() {
+  const dots = document.querySelectorAll('#setup-dots .pin-dot');
+  dots.forEach((d, i) => {
+    d.classList.toggle('filled', i < App.setupPinEntry.length);
+  });
+}
+
+async function processSetupPin() {
+  if (App.setupStep === 'first') {
+    App.setupPinFirst = App.setupPinEntry;
+    App.setupPinEntry = '';
+    App.setupStep = 'second';
+    document.getElementById('setup-subtitle').textContent = 'Confirma tu PIN';
+    updateSetupDots();
+    document.getElementById('setup-status').textContent = '';
+  } else {
+    // Confirmar PIN
+    if (App.setupPinEntry === App.setupPinFirst) {
+      const hash = await hashPin(App.setupPinEntry);
+      await dbPut('config', { key: 'pin_hash', value: hash });
+
+      // Intentar registrar biometría
+      const status = document.getElementById('setup-status');
+      status.textContent = '🔏 Configurando biometría...';
+      status.className = 'auth-status';
+
+      const bioOk = await registerBiometric();
+      if (bioOk) {
+        await dbPut('config', { key: 'biometric_enabled', value: true });
+        status.textContent = '✅ Biometría configurada';
+      } else {
+        status.textContent = '⚠️ Biometría no disponible. Solo PIN.';
+      }
+
+      await dbPut('config', { key: 'setup_complete', value: true });
+
+      setTimeout(() => enterApp(), 800);
+    } else {
+      // PINs no coinciden
+      App.setupPinFirst = '';
+      App.setupPinEntry = '';
+      App.setupStep = 'first';
+      updateSetupDots();
+      document.getElementById('setup-subtitle').textContent = 'Ingresa tu PIN';
+      const st = document.getElementById('setup-status');
+      st.textContent = '❌ Los PINs no coinciden. Intenta de nuevo.';
+      st.className = 'auth-status error';
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    }
+  }
+}
+
+/* =====================================================
+   PIN — Autenticación
+   ===================================================== */
+function authPin(key) {
+  if (navigator.vibrate) navigator.vibrate(30);
+  const status = document.getElementById('auth-status');
+
+  if (key === 'del') {
+    App.authPinEntry = App.authPinEntry.slice(0, -1);
+  } else {
+    if (App.authPinEntry.length >= 6) return;
+    App.authPinEntry += key;
+  }
+
+  updateAuthDots();
+
+  if (App.authPinEntry.length === 6) {
+    setTimeout(() => verifyPin(), 200);
+  }
+}
+
+function updateAuthDots() {
+  const dots = document.querySelectorAll('#auth-dots .pin-dot');
+  dots.forEach((d, i) => {
+    d.classList.toggle('filled', i < App.authPinEntry.length);
+  });
+}
+
+async function verifyPin() {
+  const status = document.getElementById('auth-status');
+  try {
+    const stored = await dbGet('config', 'pin_hash');
+    if (!stored) { enterApp(); return; } // Dev mode sin PIN
+
+    const hash = await hashPin(App.authPinEntry);
+    if (hash === stored.value) {
+      status.textContent = '✅ PIN correcto';
+      status.className = 'auth-status success';
+      if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+      setTimeout(() => enterApp(), 400);
+    } else {
+      App.authPinEntry = '';
+      updateAuthDots();
+      status.textContent = '❌ PIN incorrecto';
+      status.className = 'auth-status error';
+      if (navigator.vibrate) navigator.vibrate([200, 50, 200]);
+      setTimeout(() => {
+        status.textContent = '';
+        status.className = 'auth-status';
+      }, 2000);
+    }
+  } catch (e) {
+    console.error('PIN verify error:', e);
+    enterApp(); // Fallback para desarrollo
+  }
+}
+
+/* =====================================================
+   ENTRAR A LA APP
+   ===================================================== */
+async function enterApp() {
+  App.isAuthenticated = true;
+  App.authPinEntry = '';
+  showScreen('screen-main');
+  await renderAll();
+}
+
+function doLock() {
+  App.isAuthenticated = false;
+  App.authPinEntry = '';
+  updateAuthDots();
+  document.getElementById('auth-status').textContent = '';
+  showScreen('screen-auth');
+}
+
+/* =====================================================
+   TABS
+   ===================================================== */
+function switchTab(tab) {
+  App.currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === `tab-${tab}`);
+  });
+
+  // Cambiar FAB según tab
+  const fab = document.getElementById('fab-btn');
+  if (tab === 'cards') {
+    fab.textContent = '+';
+    fab.onclick = openAddCardModal;
+  } else {
+    fab.textContent = '+';
+    fab.onclick = openAddModal;
+  }
+
+  if (tab === 'alerts') renderAlerts();
+}
+
+/* =====================================================
+   RENDER — Servicios
+   ===================================================== */
+async function renderServices() {
+  const services = await dbGetAll('services');
+  const cards    = await dbGetAll('cards');
+  const list     = document.getElementById('services-list');
+  const countEl  = document.getElementById('services-count-label');
+
+  const active   = services.filter(s => s.active !== false);
+  countEl.textContent = active.length;
+
+  // Resumen
+  let total = 0;
+  let ok = 0, urgent = 0, overdue = 0;
+
+  active.forEach(s => {
+    const amount = parseFloat(s.amount) || 0;
+    const days   = daysUntil(s.day);
+    const level  = alertLevel(days);
+    // Conversión simple a Bs. (si es USD, usamos tipo de cambio referencial 6.96)
+    if (s.currency === 'USD') total += amount * 6.96;
+    else total += amount;
+    if (level === 'ok')      ok++;
+    if (level === 'urgent')  urgent++;
+    if (level === 'overdue') overdue++;
+  });
+
+  document.getElementById('total-monthly').textContent = total.toFixed(2);
+  document.getElementById('total-services-count').textContent =
+    `${active.length} servicio${active.length !== 1 ? 's' : ''} activo${active.length !== 1 ? 's' : ''}`;
+  document.getElementById('count-ok').textContent      = ok;
+  document.getElementById('count-urgent').textContent  = urgent;
+  document.getElementById('count-overdue').textContent = overdue;
+
+  // Lista
+  if (services.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <h3>Sin servicios</h3>
+        <p>Toca el botón <strong>+</strong> para agregar tu primer servicio recurrente</p>
+      </div>`;
+    return;
+  }
+
+  // Ordenar: vencidos primero, luego urgentes, luego por día
+  services.sort((a, b) => daysUntil(a.day) - daysUntil(b.day));
+
+  const cardMap = {};
+  cards.forEach(c => { cardMap[c.id] = c; });
+
+  list.innerHTML = services.map(s => {
+    const days  = daysUntil(s.day);
+    const level = alertLevel(days);
+    const card  = s.cardId ? cardMap[s.cardId] : null;
+    const isInactive = s.active === false;
+
+    const dueText = days < 0
+      ? `Venció hace ${Math.abs(days)} día${Math.abs(days) !== 1 ? 's' : ''}`
+      : days === 0
+        ? '¡Vence hoy!'
+        : `Vence en ${days} día${days !== 1 ? 's' : ''}`;
+
+    const alertBadge = (level === 'urgent' || level === 'overdue') && !isInactive
+      ? '<div class="alert-badge"></div>'
+      : '';
+
+    return `
+      <div class="service-card cat-${s.category} animate-in ${isInactive ? 'opacity-40' : ''}"
+           onclick="openDetail('${s.id}')" style="${isInactive ? 'opacity:0.45' : ''}">
+        ${alertBadge}
+        <div class="service-icon">${s.icon || '📋'}</div>
+        <div class="service-info">
+          <div class="service-name">${s.name}</div>
+          <div class="service-meta">
+            <span class="status-dot ${isInactive ? 'inactive' : 'active'}"></span>
+            ${categoryLabel(s.category).split(' ')[1] || categoryLabel(s.category)}
+            ${card ? `<span class="service-card-tag">••${card.digits}</span>` : ''}
+          </div>
+        </div>
+        <div class="service-right">
+          <div class="service-amount">${formatMoney(s.amount, s.currency)}</div>
+          <div class="service-due ${isInactive ? '' : level}">${isInactive ? 'Inactivo' : dueText}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* =====================================================
+   RENDER — Tarjetas
+   ===================================================== */
+async function renderCards() {
+  const cards    = await dbGetAll('cards');
+  const services = await dbGetAll('services');
+  const list     = document.getElementById('cards-list');
+  const countEl  = document.getElementById('cards-count-label');
+
+  countEl.textContent = cards.length;
+
+  if (cards.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">💳</div>
+        <h3>Sin tarjetas</h3>
+        <p>Agrega tus tarjetas para asociarlas a cada servicio. No guardamos datos sensibles.</p>
+      </div>`;
+    return;
+  }
+
+  const networkIcons = { Visa: '💙', Mastercard: '🔴', Amex: '🟡', Otra: '⬜' };
+
+  list.innerHTML = cards.map(c => {
+    const svcCount = services.filter(s => s.cardId === c.id).length;
+    return `
+      <div class="card-item animate-in" style="background: linear-gradient(135deg, ${c.color}cc, ${c.color}88);"
+           onclick="showToast('Tarjeta: ${c.alias} •••• ${c.digits}','info')">
+        <div class="card-top">
+          <span class="card-network">${networkIcons[c.type] || '💳'}</span>
+          <span class="card-type-badge">${c.type}</span>
+        </div>
+        <div class="card-number">•••• •••• •••• ${c.digits}</div>
+        <div class="card-bottom">
+          <div>
+            <div class="card-alias">${c.alias}</div>
+            <div class="card-services-count">${svcCount} servicio${svcCount !== 1 ? 's' : ''} asociado${svcCount !== 1 ? 's' : ''}</div>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted)">${c.bank || ''}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* =====================================================
+   RENDER — Alertas
+   ===================================================== */
+async function renderAlerts() {
+  const services = await dbGetAll('services');
+  const list     = document.getElementById('alerts-list');
+
+  const active = services
+    .filter(s => s.active !== false)
+    .sort((a, b) => daysUntil(a.day) - daysUntil(b.day))
+    .slice(0, 15);
+
+  if (active.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">⏰</div><h3>Sin alertas</h3><p>Agrega servicios para ver sus vencimientos aquí</p></div>`;
+    return;
+  }
+
+  list.innerHTML = active.map(s => {
+    const days  = daysUntil(s.day);
+    const level = alertLevel(days);
+    const daysText = days < 0
+      ? `${Math.abs(days)}d`
+      : days === 0 ? 'HOY' : `${days}d`;
+    const dateStr = `Día ${s.day} de cada mes`;
+    return `
+      <div class="alert-item animate-in">
+        <div class="alert-icon-wrap ${level}">${s.icon || '📋'}</div>
+        <div class="alert-info">
+          <div class="alert-name">${s.name}</div>
+          <div class="alert-date">${dateStr} · ${formatMoney(s.amount, s.currency)}</div>
+        </div>
+        <div>
+          <div class="alert-days ${level}">${daysText}</div>
+          <div class="alert-days-label">${days < 0 ? 'vencido' : days === 0 ? '¡hoy!' : 'restantes'}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function renderAll() {
+  await renderServices();
+  await renderCards();
+  await renderAlerts();
+}
+
+/* =====================================================
+   MODAL — Agregar / Editar Servicio
+   ===================================================== */
+const EMOJIS = ['📺','🎵','🎮','📚','🤖','🛡️','💰','🏠','⚡','💧','📦','🌐','📱','💻','🎬','🎧','🏋️','🚗','✈️','🍕','☕','🔔','📧','☁️'];
+const CARD_COLORS = ['#1a2740','#1a2020','#201a2a','#1a2018','#2a1a1a','#1e1a10'];
+
+function openAddModal() {
+  App.editingServiceId = null;
+  App.selectedEmoji    = '📋';
+  document.getElementById('modal-service-title').textContent = 'Nuevo servicio';
+  document.getElementById('btn-delete-svc').classList.add('hidden');
+
+  // Reset form
+  ['svc-name','svc-amount','svc-day','svc-url'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('svc-category').value = 'streaming';
+  document.getElementById('svc-currency').value  = 'BS';
+
+  renderEmojiPicker();
+  populateCardSelect();
+  openModal('modal-service');
+}
+
+async function editCurrentService() {
+  closeModal('modal-detail');
+  const s = await dbGet('services', App.currentServiceId);
+  if (!s) return;
+
+  App.editingServiceId = s.id;
+  App.selectedEmoji    = s.icon || '📋';
+
+  document.getElementById('modal-service-title').textContent = 'Editar servicio';
+  document.getElementById('btn-delete-svc').classList.remove('hidden');
+  document.getElementById('svc-name').value     = s.name;
+  document.getElementById('svc-amount').value   = s.amount;
+  document.getElementById('svc-day').value      = s.day;
+  document.getElementById('svc-url').value      = s.url || '';
+  document.getElementById('svc-category').value = s.category;
+  document.getElementById('svc-currency').value = s.currency || 'BS';
+
+  renderEmojiPicker();
+  await populateCardSelect(s.cardId);
+  openModal('modal-service');
+}
+
+function renderEmojiPicker() {
+  const grid = document.getElementById('emoji-picker');
+  grid.innerHTML = EMOJIS.map(e => `
+    <div class="emoji-opt ${e === App.selectedEmoji ? 'selected' : ''}"
+         onclick="selectEmoji('${e}',this)">${e}</div>`).join('');
+}
+
+function selectEmoji(e, el) {
+  App.selectedEmoji = e;
+  document.querySelectorAll('.emoji-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function populateCardSelect(selectedCardId = '') {
+  const cards  = await dbGetAll('cards');
+  const select = document.getElementById('svc-card');
+  select.innerHTML = '<option value="">— Sin tarjeta —</option>' +
+    cards.map(c => `<option value="${c.id}" ${c.id === selectedCardId ? 'selected' : ''}>
+      ${c.alias} ••${c.digits}
+    </option>`).join('');
+}
+
+async function saveService() {
+  const name     = document.getElementById('svc-name').value.trim();
+  const amount   = parseFloat(document.getElementById('svc-amount').value);
+  const day      = parseInt(document.getElementById('svc-day').value);
+  const category = document.getElementById('svc-category').value;
+  const currency = document.getElementById('svc-currency').value;
+  const cardId   = document.getElementById('svc-card').value;
+  const url      = document.getElementById('svc-url').value.trim();
+
+  if (!name)              { showToast('Ingresa el nombre del servicio','error'); return; }
+  if (isNaN(amount) || amount < 0) { showToast('Ingresa un monto válido','error'); return; }
+  if (isNaN(day) || day < 1 || day > 31) { showToast('Ingresa un día válido (1-31)','error'); return; }
+
+  const svc = {
+    id:       App.editingServiceId || genId(),
+    name, amount, day, category, currency, cardId, url,
+    icon:     App.selectedEmoji,
+    active:   true,
+    createdAt: App.editingServiceId ? undefined : Date.now()
+  };
+  if (App.editingServiceId) {
+    const existing = await dbGet('services', App.editingServiceId);
+    svc.active    = existing.active;
+    svc.createdAt = existing.createdAt;
+  }
+
+  await dbPut('services', svc);
+  closeModal('modal-service');
+  await renderAll();
+  showToast(App.editingServiceId ? '✏️ Servicio actualizado' : '✅ Servicio agregado');
+}
+
+async function deleteCurrentService() {
+  if (!App.editingServiceId) return;
+  if (!confirm('¿Eliminar este servicio?')) return;
+  await dbDelete('services', App.editingServiceId);
+  closeModal('modal-service');
+  await renderAll();
+  showToast('🗑️ Servicio eliminado');
+}
+
+/* =====================================================
+   MODAL — Agregar Tarjeta
+   ===================================================== */
+function openAddCardModal() {
+  renderCardColorPicker();
+  ['card-alias','card-digits','card-bank'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('card-type').value = 'Visa';
+  openModal('modal-card');
+}
+
+function renderCardColorPicker() {
+  const picker = document.getElementById('card-color-picker');
+  App.selectedCardColor = CARD_COLORS[0];
+  picker.innerHTML = CARD_COLORS.map((c, i) => `
+    <div onclick="selectCardColor('${c}',this)"
+         style="width:36px;height:36px;border-radius:10px;background:${c};
+                border:2px solid ${i === 0 ? 'var(--accent-blue)' : 'var(--border)'};
+                cursor:pointer;transition:border-color 0.15s"
+         data-color="${c}"></div>`).join('');
+}
+
+function selectCardColor(color, el) {
+  App.selectedCardColor = color;
+  document.querySelectorAll('#card-color-picker div').forEach(d => {
+    d.style.borderColor = d.dataset.color === color ? 'var(--accent-blue)' : 'var(--border)';
+  });
+}
+
+async function saveCard() {
+  const alias  = document.getElementById('card-alias').value.trim();
+  const digits = document.getElementById('card-digits').value.trim();
+  const type   = document.getElementById('card-type').value;
+  const bank   = document.getElementById('card-bank').value.trim();
+
+  if (!alias)                { showToast('Ingresa un alias para la tarjeta','error'); return; }
+  if (!/^\d{4}$/.test(digits)) { showToast('Ingresa exactamente 4 dígitos','error'); return; }
+
+  await dbPut('cards', {
+    id: genId(), alias, digits, type, bank,
+    color: App.selectedCardColor,
+    createdAt: Date.now()
+  });
+
+  closeModal('modal-card');
+  await renderAll();
+  showToast('✅ Tarjeta agregada');
+  // Ir a tab de tarjetas
+  switchTab('cards');
+}
+
+/* =====================================================
+   MODAL — Detalle de Servicio
+   ===================================================== */
+async function openDetail(serviceId) {
+  App.currentServiceId = serviceId;
+  const s     = await dbGet('services', serviceId);
+  const cards = await dbGetAll('cards');
+  const card  = s.cardId ? cards.find(c => c.id === s.cardId) : null;
+  const days  = daysUntil(s.day);
+
+  document.getElementById('detail-icon').textContent     = s.icon || '📋';
+  document.getElementById('detail-name').textContent     = s.name;
+  document.getElementById('detail-category').textContent = categoryLabel(s.category);
+  document.getElementById('detail-amount').textContent   = formatMoney(s.amount, s.currency);
+  document.getElementById('detail-day').textContent      = `Día ${s.day}`;
+  document.getElementById('detail-card').textContent     = card ? `${card.alias} ••${card.digits}` : '—';
+
+  const nextText = days < 0
+    ? `Venció hace ${Math.abs(days)}d`
+    : days === 0 ? '¡Hoy!' : `En ${days} día${days !== 1 ? 's' : ''}`;
+  document.getElementById('detail-next').textContent = nextText;
+
+  const toggle = document.getElementById('detail-toggle');
+  toggle.classList.toggle('on', s.active !== false);
+
+  document.getElementById('detail-pay-btn').style.display = s.url ? '' : 'none';
+
+  openModal('modal-detail');
+}
+
+async function toggleServiceActive() {
+  const s = await dbGet('services', App.currentServiceId);
+  s.active = !s.active;
+  await dbPut('services', s);
+  const toggle = document.getElementById('detail-toggle');
+  toggle.classList.toggle('on', s.active);
+  await renderServices();
+  showToast(s.active ? '✅ Servicio activado' : '⏸️ Servicio pausado');
+}
+
+async function goToPay() {
+  const s = await dbGet('services', App.currentServiceId);
+  if (s.url) {
+    closeModal('modal-detail');
+    showToast('📲 Abriendo plataforma de pago...','info');
+    setTimeout(() => { window.open(s.url, '_blank'); }, 500);
+  }
+}
+
+/* =====================================================
+   MODAL — Control
+   ===================================================== */
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+function closeOnOverlay(e, id) {
+  if (e.target === document.getElementById(id)) closeModal(id);
+}
+
+/* =====================================================
+   SERVICE WORKER — Registro
+   ===================================================== */
+async function registerSW() {
+  if ('serviceWorker' in navigator) {
+    try {
+      await navigator.serviceWorker.register('sw.js');
+      console.log('[BillManager] Service Worker registrado');
+    } catch (e) {
+      console.warn('[BillManager] SW no registrado:', e);
+    }
+  }
+}
+
+/* =====================================================
+   INICIO DE LA APP
+   ===================================================== */
+async function boot() {
+  await initDB();
+  await registerSW();
+
+  // Verificar si es primera ejecución
+  const setupDone = await dbGet('config', 'setup_complete');
+
+  if (!setupDone) {
+    // Primera vez: setup de PIN
+    showScreen('screen-setup');
+  } else {
+    // Mostrar pantalla de auth
+    showScreen('screen-auth');
+    // Auto-intentar biometría si está disponible
+    const bioEnabled = await dbGet('config', 'biometric_enabled');
+    if (bioEnabled && bioEnabled.value) {
+      setTimeout(() => doBioAuth(), 600);
+    }
+  }
+}
+
+// Arrancar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+</body>
+</html>
