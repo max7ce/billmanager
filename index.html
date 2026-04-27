@@ -487,7 +487,7 @@
 
   <!-- ═══ AUTH ═══ -->
   <div id="screen-auth" class="hidden">
-    <div class="auth-logo animate-in">Bill<span>Manager</span></div>
+    <div class="auth-logo animate-in">Bill<span>Manager</span><div style="font-size:13px;font-weight:400;color:var(--text-muted);letter-spacing:1px;margin-top:4px">de MAX7CE · majIA</div></div>
     <div class="auth-tagline animate-in" style="animation-delay:0.05s">Gestión inteligente de pagos</div>
 
     <div class="bio-btn-wrap animate-in" style="animation-delay:0.1s">
@@ -534,12 +534,13 @@
   <!-- ═══ PANTALLA PRINCIPAL ═══ -->
   <div id="screen-main" class="hidden">
     <div class="app-header">
-      <div class="header-brand">Bill<span>Manager</span></div>
+      <div class="header-brand">Bill<span>Manager</span><span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px;letter-spacing:0.5px">by MAX7CE</span></div>
       <div class="header-actions">
         <button class="icon-btn" onclick="switchTab('notif')" id="notif-btn">
           🔔
           <div class="notif-badge hidden" id="notif-badge"></div>
         </button>
+        <button class="icon-btn" onclick="openModal('modal-about')" title="Acerca de">ℹ️</button>
         <button class="icon-btn" onclick="doLock()">🔒</button>
       </div>
     </div>
@@ -858,6 +859,32 @@
   </div>
 </div>
 
+<!-- ═══ MODAL: Acerca de ═══ -->
+<div class="modal-overlay" id="modal-about" onclick="closeOnOverlay(event,'modal-about')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:8px 0 24px">
+      <div style="font-size:52px;margin-bottom:12px">💳</div>
+      <div style="font-family:var(--font-display);font-size:26px;font-weight:800;margin-bottom:4px">Bill<span style='color:var(--accent-blue)'>Manager</span></div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px;letter-spacing:1px">Versión 2.0 · Fase 3</div>
+      <div style="background:var(--bg-base);border:1px solid var(--border);border-radius:var(--radius-md);padding:20px;text-align:left;margin-bottom:16px">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Desarrollado por</div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:4px">Marco Antonio Córdova</div>
+        <div style="font-size:14px;color:var(--accent-blue);font-weight:600;margin-bottom:16px">majIA_de_max7ce</div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">📧 Contacto:</div>
+        <div id="about-email" style="font-size:14px;color:var(--accent-blue);font-weight:500;cursor:pointer;padding:10px;background:rgba(56,189,248,0.06);border-radius:8px;border:1px solid rgba(56,189,248,0.15);text-align:center" onclick="copyEmail()">max7ce@gmail.com</div>
+        <div id="email-copied" style="font-size:11px;color:var(--accent-green);text-align:center;margin-top:6px;display:none">✅ Email copiado</div>
+      </div>
+      <div style="background:var(--bg-base);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;text-align:left;margin-bottom:24px">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">La app incluye</div>
+        <div style="font-size:13px;color:var(--text-secondary);line-height:2">✅ Autenticación biométrica (huella digital)<br>✅ Gestión de servicios y tarjetas<br>✅ Alertas de vencimiento (D-7, D-3, D-0)<br>✅ Flujo guiado de pago<br>✅ Dashboard con gráficos<br>✅ Exportación Excel y CSV<br>✅ Funciona offline (PWA)</div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted)">Tarija, Bolivia · 2025</div>
+    </div>
+    <button class="btn btn-secondary" onclick="closeModal('modal-about')">Cerrar</button>
+  </div>
+</div>
+
 <div id="toast"><span id="toast-icon">✅</span><span id="toast-msg">Mensaje</span></div>
 
 <!-- ═══════════════════════════════════════════════════
@@ -900,6 +927,12 @@ const SERVICE_CATALOG = [
   { name: 'Canva Pro',     icon: '🖼️', category: 'otro',      currency: 'USD', amount: 12.99, day: 7,  url: 'https://canva.com' },
   { name: 'Gym / Fitness', icon: '💪', category: 'otro',      currency: 'BS',  amount: 200,   day: 1,  url: '' },
   { name: 'Préstamo',      icon: '💰', category: 'prestamo',  currency: 'BS',  amount: 800,   day: 15, url: '' },
+  // UCB — Universidad Católica Boliviana · Sede Tarija · Período 1-2026
+  { name: 'UCB Cuota 1/5 · Ene',  icon: '🎓', category: 'otro', currency: 'BS', amount: 0, day: 29, fixedDate: '2026-01-29', url: 'https://cajap.ucb.edu.bo/UCBPagosWeb/', note: 'UCB Tarija · Período 1-2026 · Cuota 1 de 5' },
+  { name: 'UCB Cuota 2/5 · Feb',  icon: '🎓', category: 'otro', currency: 'BS', amount: 0, day: 26, fixedDate: '2026-02-26', url: 'https://cajap.ucb.edu.bo/UCBPagosWeb/', note: 'UCB Tarija · Período 1-2026 · Cuota 2 de 5' },
+  { name: 'UCB Cuota 3/5 · Mar',  icon: '🎓', category: 'otro', currency: 'BS', amount: 0, day: 26, fixedDate: '2026-03-26', url: 'https://cajap.ucb.edu.bo/UCBPagosWeb/', note: 'UCB Tarija · Período 1-2026 · Cuota 3 de 5' },
+  { name: 'UCB Cuota 4/5 · Abr',  icon: '🎓', category: 'otro', currency: 'BS', amount: 0, day: 30, fixedDate: '2026-04-30', url: 'https://cajap.ucb.edu.bo/UCBPagosWeb/', note: 'UCB Tarija · Período 1-2026 · Cuota 4 de 5' },
+  { name: 'UCB Cuota 5/5 · May',  icon: '🎓', category: 'otro', currency: 'BS', amount: 0, day: 28, fixedDate: '2026-05-28', url: 'https://cajap.ucb.edu.bo/UCBPagosWeb/', note: 'UCB Tarija · Período 1-2026 · Cuota 5 de 5' },
 ];
 
 /* ── IndexedDB ──────────────────────────────────── */
@@ -1457,28 +1490,57 @@ function openAddModal() {
 
 function renderSeedGrid() {
   const grid = document.getElementById('seed-grid');
-  grid.innerHTML = SERVICE_CATALOG.map((s, i) =>
-    `<div class="seed-item" onclick="selectSeed(${i})">
+
+  // Separar UCB del resto
+  const ucbIndexStart = SERVICE_CATALOG.findIndex(s => s.fixedDate);
+  const regular = SERVICE_CATALOG.slice(0, ucbIndexStart > -1 ? ucbIndexStart : SERVICE_CATALOG.length);
+  const ucb     = ucbIndexStart > -1 ? SERVICE_CATALOG.slice(ucbIndexStart) : [];
+
+  const renderItems = (list, offset) => list.map((s, i) =>
+    `<div class="seed-item" onclick="selectSeed(${offset + i})">
       <div class="seed-icon">${s.icon}</div>
-      <div class="seed-name">${s.name}</div>
+      <div class="seed-name">${s.name.split('·')[0].trim()}</div>
     </div>`
   ).join('');
+
+  let html = renderItems(regular, 0);
+
+  if (ucb.length > 0) {
+    html += `<div style="grid-column:1/-1;margin:8px 0 4px;padding:10px 12px;
+              background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);
+              border-radius:10px;font-size:11px;font-weight:700;color:var(--accent-purple);
+              letter-spacing:0.5px;text-transform:uppercase">
+              🎓 UCB Tarija · Período 1-2026</div>`;
+    html += renderItems(ucb, ucbIndexStart);
+  }
+
+  grid.innerHTML = html;
 }
 
 function selectSeed(i) {
   const s = SERVICE_CATALOG[i];
   App.selectedEmoji = s.icon;
   closeModal('modal-quick-add');
-  // Pre-rellenar el formulario
   App.editingServiceId = null;
   document.getElementById('modal-service-title').textContent = 'Nuevo servicio';
   document.getElementById('btn-delete-svc').classList.add('hidden');
   document.getElementById('svc-name').value     = s.name;
-  document.getElementById('svc-amount').value   = s.amount;
+  // UCB: monto 0 → el usuario ingresa su monto real
+  document.getElementById('svc-amount').value   = s.amount > 0 ? s.amount : '';
   document.getElementById('svc-day').value      = s.day;
   document.getElementById('svc-url').value      = s.url;
   document.getElementById('svc-category').value = s.category;
   document.getElementById('svc-currency').value = s.currency;
+  // Si tiene nota (UCB), mostrar placeholder informativo
+  const amountInput = document.getElementById('svc-amount');
+  if (s.note) {
+    amountInput.placeholder = 'Ingresa tu monto de colegiatura';
+    // Guardar la nota en un atributo temporal para usarla al guardar
+    amountInput.dataset.seedNote = s.note;
+  } else {
+    amountInput.placeholder = '0.00';
+    delete amountInput.dataset.seedNote;
+  }
   renderEmojiPicker();
   populateCardSelect();
   openModal('modal-service');
@@ -2260,6 +2322,17 @@ async function exportCSV() {
   showToast('📄 CSV descargado', 'success');
 }
 
+
+/* ── Copiar email desde modal Acerca de ─────────── */
+function copyEmail() {
+  navigator.clipboard.writeText("max7ce@gmail.com").then(() => {
+    const msg = document.getElementById("email-copied");
+    msg.style.display = "block";
+    setTimeout(() => { msg.style.display = "none"; }, 2000);
+  }).catch(() => {
+    showToast("max7ce@gmail.com", "info");
+  });
+}
 document.addEventListener('DOMContentLoaded', boot);
 </script>
 </body>
