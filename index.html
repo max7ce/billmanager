@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
     /* ── Variables ─────────────────────────────────── */
@@ -448,6 +449,12 @@
     .export-btn { width: 100%; padding: 16px; border-radius: var(--radius-md); background: linear-gradient(135deg,#16a34a,#15803d); border: none; color: #fff; font-family: var(--font-body); font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 16px rgba(22,163,74,0.3); transition: transform 0.1s; margin-bottom: 10px; }
     .export-btn:active { transform: scale(0.97); }
     .export-btn.blue { background: linear-gradient(135deg,var(--accent-blue),#0ea5e9); box-shadow: 0 4px 16px rgba(56,189,248,0.25); }
+    /* ── QR Modal ───────────────────────────────────── */
+    .qr-display-wrap { display:flex; flex-direction:column; align-items:center; gap:16px; padding:8px 0 24px; }
+    .qr-canvas-wrap { background:#fff; border-radius:16px; padding:16px; box-shadow:0 4px 24px rgba(0,0,0,0.3); }
+    .qr-service-name { font-family:var(--font-display); font-size:18px; font-weight:700; text-align:center; }
+    .qr-instruction { font-size:13px; color:var(--text-secondary); text-align:center; line-height:1.6; }
+    .qr-amount-badge { background:rgba(52,211,153,0.1); border:1px solid rgba(52,211,153,0.3); border-radius:12px; padding:10px 20px; font-family:var(--font-display); font-size:20px; font-weight:800; color:var(--accent-green); }
   </style>
 </head>
 <body>
@@ -757,8 +764,22 @@
       </select>
     </div>
     <div class="form-group">
-      <label class="form-label">URL del servicio</label>
-      <input type="url" class="form-input" id="svc-url" placeholder="https://..." inputmode="url" />
+      <label class="form-label">URL del servicio <span style="color:var(--text-muted);font-weight:400">(opcional)</span></label>
+      <input type="text" class="form-input" id="svc-url" placeholder="https://... o deja vacío si usas QR" inputmode="url" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Código QR de pago <span style="color:var(--text-muted);font-weight:400">(opcional)</span></label>
+      <textarea class="form-input" id="svc-qr" rows="3"
+        placeholder="Escanea tu QR con Google Lens → copia el texto aquí"
+        style="resize:none;font-size:13px;font-family:monospace;line-height:1.4"
+        oninput="onQRInput()"></textarea>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.5">
+        💡 Escanea el QR con Google Lens o cualquier lector → copia el texto que aparece → pégalo aquí
+      </div>
+      <div id="qr-preview-wrap" style="display:none;margin-top:12px;text-align:center">
+        <canvas id="qr-preview-canvas" style="border-radius:10px;border:1px solid var(--border)"></canvas>
+        <div style="font-size:11px;color:var(--accent-green);margin-top:6px">✅ QR válido — se mostrará al pagar</div>
+      </div>
     </div>
 
     <button class="btn btn-primary" onclick="saveService()">Guardar servicio</button>
@@ -830,6 +851,7 @@
     </div>
 
     <button class="btn btn-green" id="detail-pay-btn" onclick="startPayFlow()">💳 Flujo de pago guiado</button>
+    <button class="btn btn-primary hidden" id="detail-qr-btn" onclick="showQRModal()">📱 Mostrar QR de pago</button>
     <button class="btn btn-secondary" onclick="editCurrentService()">✏️ Editar</button>
     <button class="btn btn-secondary" onclick="closeModal('modal-detail')">Cerrar</button>
   </div>
@@ -885,6 +907,25 @@
   </div>
 </div>
 
+
+<!-- ═══ MODAL: QR de pago ═══ -->
+<div class="modal-overlay" id="modal-qr" onclick="closeOnOverlay(event,'modal-qr')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="qr-display-wrap">
+      <div class="qr-service-name" id="qr-service-name">Servicio</div>
+      <div class="qr-amount-badge" id="qr-amount-badge" style="display:none"></div>
+      <div class="qr-canvas-wrap">
+        <div id="qr-code-display"></div>
+      </div>
+      <div class="qr-instruction">
+        Muestra este QR al cobrador<br>o escanéalo desde la app de tu banco
+      </div>
+    </div>
+    <button class="btn btn-green" onclick="closeModal('modal-qr');openConfirmPayModal()">✅ Ya pagué — Registrar</button>
+    <button class="btn btn-secondary" onclick="closeModal('modal-qr')">Cerrar</button>
+  </div>
+</div>
 <div id="toast"><span id="toast-icon">✅</span><span id="toast-msg">Mensaje</span></div>
 
 <!-- ═══════════════════════════════════════════════════
@@ -1552,7 +1593,7 @@ function openManualAdd() {
   App.selectedEmoji = '📋';
   document.getElementById('modal-service-title').textContent = 'Nuevo servicio';
   document.getElementById('btn-delete-svc').classList.add('hidden');
-  ['svc-name','svc-amount','svc-day','svc-url'].forEach(id => document.getElementById(id).value='');
+  ['svc-name','svc-amount','svc-day','svc-url','svc-qr'].forEach(id => document.getElementById(id).value='');
   document.getElementById('svc-category').value = 'streaming';
   document.getElementById('svc-currency').value  = 'BS';
   renderEmojiPicker();
@@ -1587,21 +1628,24 @@ async function populateCardSelect(sel='') {
 /* ── Save / Delete Servicio ─────────────────────── */
 async function saveService() {
   const name     = document.getElementById('svc-name').value.trim();
-  const amount   = parseFloat(document.getElementById('svc-amount').value);
+  const amountRaw= document.getElementById('svc-amount').value;
+  const amount   = amountRaw === '' ? 0 : parseFloat(amountRaw);
   const day      = parseInt(document.getElementById('svc-day').value);
   const category = document.getElementById('svc-category').value;
   const currency = document.getElementById('svc-currency').value;
   const cardId   = document.getElementById('svc-card').value;
   const url      = document.getElementById('svc-url').value.trim();
+  const qrData   = document.getElementById('svc-qr').value.trim();
 
-  if (!name)              { showToast('Ingresa el nombre','error'); return; }
-  if (isNaN(amount)||amount<0) { showToast('Monto inválido','error'); return; }
-  if (isNaN(day)||day<1||day>31) { showToast('Día inválido (1-31)','error'); return; }
+  if (!name)                      { showToast('Ingresa el nombre','error'); return; }
+  if (isNaN(amount)||amount<0)    { showToast('Monto inválido','error'); return; }
+  if (isNaN(day)||day<1||day>31)  { showToast('Día inválido (1-31)','error'); return; }
+  if (!url && !qrData)            { /* ok — servicio sin URL ni QR */ }
 
   const existing = App.editingServiceId ? await dbGet('services',App.editingServiceId) : null;
   await dbPut('services', {
     id:        App.editingServiceId || genId(),
-    name, amount, day, category, currency, cardId, url,
+    name, amount, day, category, currency, cardId, url, qrData,
     icon:      App.selectedEmoji,
     active:    existing ? existing.active : true,
     createdAt: existing ? existing.createdAt : Date.now()
@@ -1635,6 +1679,7 @@ async function editCurrentService() {
   document.getElementById('svc-amount').value   = s.amount;
   document.getElementById('svc-day').value      = s.day;
   document.getElementById('svc-url').value      = s.url||'';
+  document.getElementById('svc-qr').value       = s.qrData||'';
   document.getElementById('svc-category').value = s.category;
   document.getElementById('svc-currency').value = s.currency||'BS';
   renderEmojiPicker();
@@ -1712,6 +1757,19 @@ async function openDetail(serviceId) {
 
   // Ocultar checklist hasta que se inicie el flujo
   document.getElementById('pay-checklist-wrap').classList.add('hidden');
+
+  // Mostrar botón QR si tiene qrData, botón URL si tiene url
+  const payBtn = document.getElementById('detail-pay-btn');
+  const qrBtn  = document.getElementById('detail-qr-btn');
+  if (s.qrData) {
+    qrBtn.classList.remove('hidden');
+    // Si además tiene URL, mostrar ambos; si solo QR, ocultar flujo URL
+    if (!s.url) payBtn.style.display = 'none';
+    else        payBtn.style.display = '';
+  } else {
+    qrBtn.classList.add('hidden');
+    payBtn.style.display = '';
+  }
 
   openModal('modal-detail');
 }
@@ -2324,6 +2382,63 @@ async function exportCSV() {
 
 
 /* ── Copiar email desde modal Acerca de ─────────── */
+
+/* ══════════════════════════════════════════════════
+   QR DE PAGO
+   ══════════════════════════════════════════════════ */
+
+/* Genera un QR en un contenedor dado usando QRCode.js */
+function generateQR(containerId, text, size) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = "";
+  if (typeof QRCode === "undefined" || !text) return;
+  new QRCode(el, {
+    text:   text,
+    width:  size || 200,
+    height: size || 200,
+    colorDark:  "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M
+  });
+}
+
+/* Preview en tiempo real al escribir en el formulario */
+function onQRInput() {
+  const val  = document.getElementById("svc-qr").value.trim();
+  const wrap = document.getElementById("qr-preview-wrap");
+  if (val.length > 5) {
+    wrap.style.display = "block";
+    generateQR("qr-preview-canvas", val, 160);
+  } else {
+    wrap.style.display = "none";
+    document.getElementById("qr-preview-canvas").innerHTML = "";
+  }
+}
+
+/* Mostrar modal QR al momento de pagar */
+async function showQRModal() {
+  const s = await dbGet("services", App.currentServiceId);
+  if (!s || !s.qrData) { showToast("Este servicio no tiene QR configurado", "error"); return; }
+
+  document.getElementById("qr-service-name").textContent = s.name;
+
+  const badge = document.getElementById("qr-amount-badge");
+  if (s.amount > 0) {
+    badge.textContent = formatMoney(s.amount, s.currency);
+    badge.style.display = "block";
+  } else {
+    badge.style.display = "none";
+  }
+
+  // Limpiar y generar QR
+  document.getElementById("qr-code-display").innerHTML = "";
+  openModal("modal-qr");
+  // Generar después del open para que el DOM esté visible
+  setTimeout(() => generateQR("qr-code-display", s.qrData, 220), 100);
+
+  if (navigator.vibrate) navigator.vibrate(50);
+}
 function copyEmail() {
   navigator.clipboard.writeText("max7ce@gmail.com").then(() => {
     const msg = document.getElementById("email-copied");
