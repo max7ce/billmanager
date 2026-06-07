@@ -915,12 +915,30 @@
     <div class="qr-display-wrap">
       <div class="qr-service-name" id="qr-service-name">Servicio</div>
       <div class="qr-amount-badge" id="qr-amount-badge" style="display:none"></div>
-      <div class="qr-canvas-wrap">
+      <div class="qr-canvas-wrap" id="qr-canvas-wrap">
         <div id="qr-code-display"></div>
       </div>
-      <div class="qr-instruction">
-        Muestra este QR al cobrador<br>o escanéalo desde la app de tu banco
+      <div class="qr-instruction" id="qr-instruction">
+        Guarda el QR en tu galería y ábrelo desde e-BISA
       </div>
+      <!-- Botón guardar en galería -->
+      <button onclick="saveQRToGallery()" style="
+        width:100%;padding:14px;border-radius:14px;border:none;cursor:pointer;
+        background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;
+        font-family:var(--font-body);font-size:15px;font-weight:700;
+        display:flex;align-items:center;justify-content:center;gap:10px;
+        box-shadow:0 4px 16px rgba(124,58,237,0.3);margin-bottom:10px">
+        💾 Guardar QR en galería
+      </button>
+      <!-- Botón abrir e-BISA -->
+      <button onclick="openBISA()" style="
+        width:100%;padding:14px;border-radius:14px;border:none;cursor:pointer;
+        background:linear-gradient(135deg,#0f4c8a,#1a6bb5);color:#fff;
+        font-family:var(--font-body);font-size:15px;font-weight:700;
+        display:flex;align-items:center;justify-content:center;gap:10px;
+        box-shadow:0 4px 16px rgba(15,76,138,0.4);margin-bottom:10px">
+        🏦 Abrir e-BISA Móvil+
+      </button>
     </div>
     <button class="btn btn-green" onclick="closeModal('modal-qr');openConfirmPayModal()">✅ Ya pagué — Registrar</button>
     <button class="btn btn-secondary" onclick="closeModal('modal-qr')">Cerrar</button>
@@ -2438,6 +2456,98 @@ async function showQRModal() {
   setTimeout(() => generateQR("qr-code-display", s.qrData, 220), 100);
 
   if (navigator.vibrate) navigator.vibrate(50);
+}
+
+/* ── Guardar QR en galería ──────────────────────── */
+async function saveQRToGallery() {
+  // Obtener el canvas generado por QRCode.js
+  const wrap   = document.getElementById("qr-code-display");
+  const canvas = wrap ? wrap.querySelector("canvas") : null;
+
+  if (!canvas) {
+    showToast("QR no disponible todavía", "error");
+    return;
+  }
+
+  try {
+    // Crear un canvas mayor con fondo blanco y padding para mejor lectura
+    const pad    = 24;
+    const size   = canvas.width + pad * 2;
+    const out    = document.createElement("canvas");
+    out.width    = size;
+    out.height   = size;
+    const ctx    = out.getContext("2d");
+
+    // Fondo blanco
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, size, size);
+
+    // QR centrado
+    ctx.drawImage(canvas, pad, pad);
+
+    // Nombre del servicio debajo
+    const svcName = document.getElementById("qr-service-name").textContent;
+    ctx.fillStyle = "#333333";
+    ctx.font = "bold 14px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(svcName, size / 2, size - 8);
+
+    // Convertir a imagen y descargar
+    const dataURL  = out.toDataURL("image/png");
+    const link     = document.createElement("a");
+    link.href      = dataURL;
+    link.download  = "QR_" + svcName.replace(/[^a-zA-Z0-9]/g, "_") + ".png";
+    link.click();
+
+    showToast("💾 QR guardado — ábrelo desde e-BISA", "success");
+
+    // Actualizar instrucción
+    document.getElementById("qr-instruction").innerHTML =
+      "✅ QR guardado en tu galería<br>Ahora abre e-BISA → Pagar con QR → selecciona la imagen";
+
+  } catch(e) {
+    console.error("Error guardando QR:", e);
+    showToast("Error al guardar el QR", "error");
+  }
+}
+
+/* ── Abrir app e-BISA Móvil+ (Banco BISA) ───────── */
+function openBISA() {
+  // Intentar abrir la app nativa via intent de Android
+  // Package ID: com.bisa.ebisaplus
+  const intentURL = "intent://open#Intent;package=com.bisa.ebisaplus;scheme=ebisa;end";
+  const fallbackURL = "https://play.google.com/store/apps/details?id=com.bisa.ebisaplus";
+
+  // En Android Chrome, los intents se manejan así:
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  document.body.appendChild(iframe);
+
+  // Intento 1: URL scheme directo
+  let opened = false;
+  const timer = setTimeout(() => {
+    if (!opened) {
+      // Fallback: abrir Play Store si la app no respondió
+      window.open(fallbackURL, "_blank");
+    }
+    document.body.removeChild(iframe);
+  }, 1500);
+
+  // Escuchar si la app se abrió (la página pierde foco)
+  window.addEventListener("blur", function onBlur() {
+    opened = true;
+    clearTimeout(timer);
+    window.removeEventListener("blur", onBlur);
+  }, { once: true });
+
+  // Intentar abrir con intent
+  try {
+    window.location.href = intentURL;
+  } catch(e) {
+    window.open(fallbackURL, "_blank");
+  }
+
+  showToast("🏦 Abriendo e-BISA...", "info");
 }
 function copyEmail() {
   navigator.clipboard.writeText("max7ce@gmail.com").then(() => {
