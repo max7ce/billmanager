@@ -449,6 +449,32 @@
     .export-btn { width: 100%; padding: 16px; border-radius: var(--radius-md); background: linear-gradient(135deg,#16a34a,#15803d); border: none; color: #fff; font-family: var(--font-body); font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 16px rgba(22,163,74,0.3); transition: transform 0.1s; margin-bottom: 10px; }
     .export-btn:active { transform: scale(0.97); }
     .export-btn.blue { background: linear-gradient(135deg,var(--accent-blue),#0ea5e9); box-shadow: 0 4px 16px rgba(56,189,248,0.25); }
+    /* ── Tutorial / Welcome ─────────────────────────── */
+    #screen-welcome { flex:1; display:flex; flex-direction:column; overflow:hidden; background:var(--bg-base); }
+    .tutorial-slides { flex:1; overflow:hidden; position:relative; }
+    .tutorial-slide {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:40px 32px; text-align:center;
+      opacity:0; transform:translateX(60px);
+      transition:opacity 0.4s ease, transform 0.4s ease;
+      pointer-events:none;
+    }
+    .tutorial-slide.active { opacity:1; transform:translateX(0); pointer-events:all; }
+    .tutorial-slide.exit   { opacity:0; transform:translateX(-60px); }
+    .tutorial-emoji { font-size:72px; margin-bottom:24px; line-height:1; }
+    .tutorial-title { font-family:var(--font-display); font-size:26px; font-weight:800; margin-bottom:12px; letter-spacing:-0.5px; }
+    .tutorial-title span { color:var(--accent-blue); }
+    .tutorial-desc { font-size:15px; color:var(--text-secondary); line-height:1.7; max-width:300px; }
+    .tutorial-highlight { display:inline-block; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.2); border-radius:8px; padding:2px 10px; color:var(--accent-blue); font-weight:600; font-size:14px; margin:2px 0; }
+    .tutorial-nav { padding:24px 32px 32px; flex-shrink:0; }
+    .tutorial-dots { display:flex; justify-content:center; gap:8px; margin-bottom:24px; }
+    .tutorial-dot { width:8px; height:8px; border-radius:50%; background:var(--bg-elevated); transition:all 0.3s; }
+    .tutorial-dot.active { width:24px; border-radius:4px; background:var(--accent-blue); }
+    .tutorial-btn-row { display:flex; gap:12px; }
+    .tutorial-btn-skip { flex:1; padding:15px; border-radius:var(--radius-md); border:1px solid var(--border); background:var(--bg-surface); color:var(--text-muted); font-family:var(--font-body); font-size:15px; font-weight:600; cursor:pointer; }
+    .tutorial-btn-next { flex:2; padding:15px; border-radius:var(--radius-md); border:none; background:linear-gradient(135deg,var(--accent-blue),#0ea5e9); color:#fff; font-family:var(--font-body); font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 4px 16px rgba(56,189,248,0.3); transition:transform 0.1s; }
+    .tutorial-btn-next:active { transform:scale(0.97); }
     /* ── QR Modal ───────────────────────────────────── */
     .qr-display-wrap { display:flex; flex-direction:column; align-items:center; gap:16px; padding:8px 0 24px; }
     .qr-canvas-wrap { background:#fff; border-radius:16px; padding:16px; box-shadow:0 4px 24px rgba(0,0,0,0.3); }
@@ -459,6 +485,96 @@
 </head>
 <body>
 <div id="app">
+
+
+  <!-- ═══ WELCOME / TUTORIAL (primer uso) ═══ -->
+  <div id="screen-welcome" class="hidden">
+    <div class="tutorial-slides" id="tutorial-slides">
+
+      <!-- Slide 1: Bienvenida -->
+      <div class="tutorial-slide active" id="slide-0">
+        <div style="font-size:14px;font-weight:700;color:var(--accent-blue);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px">majIA_de_max7ce</div>
+        <div class="tutorial-emoji">💳</div>
+        <div class="tutorial-title">Bienvenido a<br>Bill<span>Manager</span></div>
+        <div class="tutorial-desc">
+          Tu gestor personal de pagos recurrentes. Nunca más olvides una fecha de vencimiento.
+        </div>
+      </div>
+
+      <!-- Slide 2: Seguridad -->
+      <div class="tutorial-slide" id="slide-1">
+        <div class="tutorial-emoji">🔐</div>
+        <div class="tutorial-title">Tu seguridad<br>primero</div>
+        <div class="tutorial-desc">
+          La app usa tu <span class="tutorial-highlight">huella digital</span> para proteger el acceso.<br><br>
+          También crearás un <span class="tutorial-highlight">PIN de 6 dígitos</span> como respaldo.<br><br>
+          Tus datos se guardan <strong>solo en este dispositivo</strong>.
+        </div>
+      </div>
+
+      <!-- Slide 3: Servicios -->
+      <div class="tutorial-slide" id="slide-2">
+        <div class="tutorial-emoji">📋</div>
+        <div class="tutorial-title">Registra tus<br>servicios</div>
+        <div class="tutorial-desc">
+          Agrega Netflix, seguros, alquileres, colegiaturas y cualquier pago mensual.<br><br>
+          Toca <span class="tutorial-highlight">+</span> para elegir del catálogo o ingresar manualmente.<br><br>
+          También puedes guardar el <span class="tutorial-highlight">QR de pago</span> de cada servicio.
+        </div>
+      </div>
+
+      <!-- Slide 4: Alertas -->
+      <div class="tutorial-slide" id="slide-3">
+        <div class="tutorial-emoji">🔔</div>
+        <div class="tutorial-title">Alertas<br>automáticas</div>
+        <div class="tutorial-desc">
+          La app te avisa <span class="tutorial-highlight">7 días antes</span>, <span class="tutorial-highlight">3 días antes</span> y el <span class="tutorial-highlight">día del vencimiento</span>.<br><br>
+          Activa las notificaciones en la pestaña <strong>Avisos</strong> después de configurar tu cuenta.
+        </div>
+      </div>
+
+      <!-- Slide 5: Flujo de pago -->
+      <div class="tutorial-slide" id="slide-4">
+        <div class="tutorial-emoji">💸</div>
+        <div class="tutorial-title">Flujo guiado<br>de pago</div>
+        <div class="tutorial-desc">
+          Cuando llegue la fecha, abre el servicio y sigue el checklist:<br><br>
+          ✅ Verificar fondos<br>
+          ✅ Tarjeta habilitada<br>
+          📱 Abrir QR o ir al sitio<br>
+          ✅ Registrar el pago
+        </div>
+      </div>
+
+      <!-- Slide 6: Empezar -->
+      <div class="tutorial-slide" id="slide-5">
+        <div class="tutorial-emoji">🚀</div>
+        <div class="tutorial-title">¡Listo para<br>empezar!</div>
+        <div class="tutorial-desc">
+          El primer paso es crear tu <span class="tutorial-highlight">PIN de 6 dígitos</span>.<br><br>
+          Luego la app intentará registrar tu <span class="tutorial-highlight">huella digital</span> automáticamente.<br><br>
+          Todo tarda menos de <strong>un minuto</strong>.
+        </div>
+      </div>
+
+    </div><!-- /tutorial-slides -->
+
+    <!-- Navegación -->
+    <div class="tutorial-nav">
+      <div class="tutorial-dots" id="tutorial-dots">
+        <div class="tutorial-dot active"></div>
+        <div class="tutorial-dot"></div>
+        <div class="tutorial-dot"></div>
+        <div class="tutorial-dot"></div>
+        <div class="tutorial-dot"></div>
+        <div class="tutorial-dot"></div>
+      </div>
+      <div class="tutorial-btn-row">
+        <button class="tutorial-btn-skip" id="tutorial-skip" onclick="skipTutorial()">Saltar</button>
+        <button class="tutorial-btn-next" id="tutorial-next" onclick="nextSlide()">Siguiente →</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ═══ SETUP (primer uso) ═══ -->
   <div id="screen-setup" class="hidden">
@@ -1079,7 +1195,7 @@ function showToast(msg, type = 'success') {
 
 /* ── Pantallas ───────────────────────────────────── */
 function showScreen(id) {
-  ['screen-auth','screen-setup','screen-main'].forEach(s =>
+  ['screen-welcome','screen-auth','screen-setup','screen-main'].forEach(s =>
     document.getElementById(s).classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
 }
@@ -1936,8 +2052,11 @@ async function boot() {
   await initDB();
   await registerSW();
 
-  const setupDone = await dbGet('config','setup_complete');
-  if (!setupDone) {
+  const setupDone   = await dbGet('config','setup_complete');
+  const tutorialSeen = await dbGet('config','tutorial_seen');
+  if (!setupDone && !tutorialSeen) {
+    showScreen('screen-welcome');
+  } else if (!setupDone) {
     showScreen('screen-setup');
   } else {
     showScreen('screen-auth');
@@ -2548,6 +2667,64 @@ function openBISA() {
   }
 
   showToast("🏦 Abriendo e-BISA...", "info");
+}
+
+/* ══════════════════════════════════════════════════
+   TUTORIAL — Pantalla de bienvenida
+   ══════════════════════════════════════════════════ */
+const TOTAL_SLIDES = 6;
+let currentSlide   = 0;
+
+function nextSlide() {
+  if (navigator.vibrate) navigator.vibrate(30);
+
+  if (currentSlide === TOTAL_SLIDES - 1) {
+    // Último slide: ir a setup
+    startSetup();
+    return;
+  }
+
+  // Animar salida del slide actual
+  const curr = document.getElementById("slide-" + currentSlide);
+  curr.classList.remove("active");
+  curr.classList.add("exit");
+  setTimeout(() => curr.classList.remove("exit"), 400);
+
+  // Mostrar siguiente
+  currentSlide++;
+  const next = document.getElementById("slide-" + currentSlide);
+  next.classList.add("active");
+
+  updateTutorialNav();
+}
+
+function updateTutorialNav() {
+  // Dots
+  document.querySelectorAll(".tutorial-dot").forEach((d, i) =>
+    d.classList.toggle("active", i === currentSlide)
+  );
+  // Botón siguiente / empezar
+  const btn = document.getElementById("tutorial-next");
+  if (currentSlide === TOTAL_SLIDES - 1) {
+    btn.textContent = "🚀 Crear mi PIN";
+    btn.style.background = "linear-gradient(135deg,#34d399,#059669)";
+  } else {
+    btn.textContent = "Siguiente →";
+    btn.style.background = "";
+  }
+  // Ocultar "Saltar" en último slide
+  document.getElementById("tutorial-skip").style.display =
+    currentSlide === TOTAL_SLIDES - 1 ? "none" : "";
+}
+
+async function skipTutorial() {
+  if (navigator.vibrate) navigator.vibrate(30);
+  await startSetup();
+}
+
+async function startSetup() {
+  await dbPut("config", { key: "tutorial_seen", value: true });
+  showScreen("screen-setup");
 }
 function copyEmail() {
   navigator.clipboard.writeText("max7ce@gmail.com").then(() => {
